@@ -195,6 +195,8 @@
 
     <script>
         let chart = null;
+        let lastUpdateTime = 0;
+        const UPDATE_INTERVAL = 3000; // 3초
 
         // 차트 초기화 함수
         function initializeChart() {
@@ -210,12 +212,16 @@
                         borderWidth: 2,
                         pointRadius: 1,
                         pointHoverRadius: 5,
-                        tension: 0.4
+                        tension: 0.4,
+                        fill: false
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: {
+                        duration: 0
+                    },
                     plugins: {
                         legend: {
                             display: false
@@ -292,8 +298,19 @@
         }
 
         // 차트 데이터 업데이트 함수
-        function updateChart(period) {
-            fetch(`/api/chart/price?period=${period}`)
+        function updateChart(period, force = false) {
+            const now = Date.now();
+            if (!force && now - lastUpdateTime < UPDATE_INTERVAL) {
+                return;
+            }
+            lastUpdateTime = now;
+
+            fetch(`/api/chart/price?period=${period}&t=${now}`, {
+                headers: {
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache'
+                }
+            })
                 .then(response => {
                     if (!response.ok) {
                         if (response.status === 401) {
@@ -309,9 +326,16 @@
                         initializeChart();
                     }
 
-                    chart.data.labels = data.labels;
-                    chart.data.datasets[0].data = data.prices;
-                    chart.update();
+                    // 차트 데이터 업데이트
+                    const chartUpdate = {
+                        labels: data.labels,
+                        datasets: [{
+                            ...chart.data.datasets[0],
+                            data: data.prices
+                        }]
+                    };
+                    chart.data = chartUpdate;
+                    chart.update('none'); // 애니메이션 없이 즉시 업데이트
 
                     // 가격 정보 업데이트
                     document.getElementById('currentPrice').textContent = data.currentPrice;
@@ -340,21 +364,21 @@
             button.addEventListener('click', function() {
                 document.querySelectorAll('.time-button').forEach(btn => btn.classList.remove('active'));
                 this.classList.add('active');
-                updateChart(this.dataset.period);
+                updateChart(this.dataset.period, true);
             });
         });
 
         // 페이지 로드 시 차트 초기화 및 데이터 로드
         document.addEventListener('DOMContentLoaded', function() {
             initializeChart();
-            updateChart('1D');
+            updateChart('1D', true);
         });
 
-        // 5초마다 데이터 업데이트
+        // 3초마다 데이터 업데이트
         setInterval(() => {
             const activePeriod = document.querySelector('.time-button.active').dataset.period;
             updateChart(activePeriod);
-        }, 5000);
+        }, UPDATE_INTERVAL);
     </script>
 </body>
 </html> 

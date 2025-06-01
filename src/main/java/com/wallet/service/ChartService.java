@@ -1,6 +1,7 @@
 package com.wallet.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -20,8 +21,9 @@ public class ChartService {
     private static final String COINGECKO_API_URL = "https://api.coingecko.com/api/v3";
     private static final String UPBIT_API_URL = "https://api.upbit.com/v1";
     private final Map<String, CacheEntry> cache = new ConcurrentHashMap<>();
-    private static final long CACHE_DURATION = 5000; // 5초 캐시
+    private static final long CACHE_DURATION = 10000; // 10초 캐시
     private final NumberFormat koreanWonFormat = NumberFormat.getNumberInstance(Locale.KOREA);
+    private final Random random = new Random();
 
     private static class CacheEntry {
         final Map<String, Object> data;
@@ -39,109 +41,151 @@ public class ChartService {
 
     @SuppressWarnings("unchecked")
     public Map<String, Object> getPriceData(String period) {
-        // 캐시 확인
-        CacheEntry cachedData = cache.get(period);
-        if (cachedData != null && !cachedData.isExpired()) {
-            return cachedData.data;
-        }
-
-        Map<String, Object> result = new HashMap<>();
-        
         try {
-            // 업비트 현재가 조회
-            String upbitUrl = UPBIT_API_URL + "/ticker?markets=KRW-ETH";
-            List<Map<String, Object>> upbitResponse = restTemplate.getForObject(upbitUrl, List.class);
+            // 현재가 정보 가져오기
+            String tickerUrl = UPBIT_API_URL + "/ticker?markets=KRW-ETH";
+            ResponseEntity<List> tickerResponse = restTemplate.getForEntity(tickerUrl, List.class);
             
-            BigDecimal upbitCurrentPrice = BigDecimal.ZERO;
-            BigDecimal upbitHighPrice = BigDecimal.ZERO;
-            BigDecimal upbitLowPrice = BigDecimal.ZERO;
-            BigDecimal upbitVolume = BigDecimal.ZERO;
-            
-            if (upbitResponse != null && !upbitResponse.isEmpty()) {
-                Map<String, Object> upbitData = upbitResponse.get(0);
-                upbitCurrentPrice = new BigDecimal(upbitData.get("trade_price").toString());
-                upbitHighPrice = new BigDecimal(upbitData.get("high_price").toString());
-                upbitLowPrice = new BigDecimal(upbitData.get("low_price").toString());
-                upbitVolume = new BigDecimal(upbitData.get("acc_trade_price_24h").toString());
+            if (!tickerResponse.getStatusCode().is2xxSuccessful()) {
+                throw new RuntimeException("Upbit API 호출 실패: " + tickerResponse.getStatusCode());
             }
 
-            // CoinGecko API 호출
-            long endTime = System.currentTimeMillis() / 1000;
-            long startTime = calculateStartTime(period, endTime);
+            List<Map<String, Object>> tickerData = (List<Map<String, Object>>) tickerResponse.getBody();
+            if (tickerData == null || tickerData.isEmpty()) {
+                throw new RuntimeException("티커 데이터가 비어있습니다.");
+            }
+
+            Map<String, Object> ticker = tickerData.get(0);
+            System.out.println("티커 데이터: " + ticker);
             
-            String url = String.format(
-                "%s/coins/ethereum/market_chart/range?vs_currency=krw&from=%d&to=%d",
-                COINGECKO_API_URL, startTime, endTime
-            );
+            // 데이터 파싱
+            BigDecimal currentPrice = new BigDecimal(ticker.get("trade_price").toString());
+            BigDecimal highPrice = new BigDecimal(ticker.get("high_price").toString());
+            BigDecimal lowPrice = new BigDecimal(ticker.get("low_price").toString());
+            BigDecimal volume = new BigDecimal(ticker.get("acc_trade_price_24h").toString());
+            BigDecimal changeRate = new BigDecimal(ticker.get("signed_change_rate").toString())
+                .multiply(new BigDecimal("100"));
+
+            // 캔들 데이터 가져오기
+            String candlesUrl = UPBIT_API_URL + "/candles/";
+            ResponseEntity<List> candlesResponse;
             
-            Map<String, List<List<Number>>> response = restTemplate.getForObject(url, Map.class);
+            // 기간별 URL 설정
+            switch (period) {
+                case "1D":
+                    candlesUrl += "minutes/5?market=KRW-ETH&count=288"; // 5분봉 288개 (24시간)
+                    break;
+                case "1W":
+                    candlesUrl += "days?market=KRW-ETH&count=7"; // 일봉 7개
+                    break;
+                case "1M":
+                    candlesUrl += "days?market=KRW-ETH&count=30"; // 일봉 30개
+                    break;
+                case "3M":
+                    candlesUrl += "weeks?market=KRW-ETH&count=12"; // 주봉 12개
+                    break;
+                case "1Y":
+                    candlesUrl += "months?market=KRW-ETH&count=12"; // 월봉 12개
+                    break;
+                default:
+                    candlesUrl += "minutes/5?market=KRW-ETH&count=288";
+            }
             
-            if (response != null && response.containsKey("prices")) {
-                List<List<Number>> prices = response.get("prices");
-                List<String> labels = new ArrayList<>();
-                List<BigDecimal> priceData = new ArrayList<>();
+            System.out.println("캔들 URL: " + candlesUrl);
+            candlesResponse = restTemplate.getForEntity(candlesUrl, List.class);
+            
+            if (!candlesResponse.getStatusCode().is2xxSuccessful()) {
+                throw new RuntimeException("Upbit API 호출 실패: " + candlesResponse.getStatusCode());
+            }
+
+            List<Map<String, Object>> candleData = (List<Map<String, Object>>) candlesResponse.getBody();
+            if (candleData == null || candleData.isEmpty()) {
+                throw new RuntimeException("캔들 데이터가 비어있습니다.");
+            }
+
+            System.out.println("캔들 데이터 개수: " + candleData.size());
+            System.out.println("첫 번째 캔들: " + candleData.get(0));
+
+            // 차트 데이터 생성
+            List<String> labels = new ArrayList<>();
+            List<BigDecimal> prices = new ArrayList<>();
+            
+            // 캔들 데이터를 시간순으로 정렬 (과거 -> 현재)
+            Collections.reverse(candleData);
+            
+            for (Map<String, Object> candle : candleData) {
+                // 시간 포맷팅
+                String timestamp = candle.get("candle_date_time_kst").toString();
+                String label;
                 
-                BigDecimal globalCurrentPrice = BigDecimal.ZERO;
-                BigDecimal globalHighPrice = BigDecimal.ZERO;
-                BigDecimal globalLowPrice = new BigDecimal("999999999999");
-                
-                for (List<Number> price : prices) {
-                    long timestamp = price.get(0).longValue();
-                    BigDecimal priceValue = new BigDecimal(price.get(1).toString());
-                    
-                    LocalDateTime dateTime = LocalDateTime.ofEpochSecond(timestamp / 1000, 0, ZoneOffset.UTC);
-                    String label = formatDateTime(dateTime, period);
-                    
-                    labels.add(label);
-                    priceData.add(priceValue);
-                    
-                    if (priceValue.compareTo(globalHighPrice) > 0) {
-                        globalHighPrice = priceValue;
-                    }
-                    if (priceValue.compareTo(globalLowPrice) < 0) {
-                        globalLowPrice = priceValue;
-                    }
-                    
-                    globalCurrentPrice = priceValue;
+                switch (period) {
+                    case "1D":
+                        // 시간:분 형식으로 표시 (매 시간마다만 시간 표시)
+                        String hour = timestamp.substring(11, 13);
+                        String minute = timestamp.substring(14, 16);
+                        if (minute.equals("00")) {
+                            label = hour + ":00";
+                        } else {
+                            label = minute + "분";
+                        }
+                        break;
+                    case "1W":
+                        // "2024-02-29T00:00:00" -> "02/29"
+                        label = timestamp.substring(5, 7) + "/" + timestamp.substring(8, 10);
+                        break;
+                    case "1M":
+                        // "2024-02-29T00:00:00" -> "02/29"
+                        label = timestamp.substring(5, 7) + "/" + timestamp.substring(8, 10);
+                        break;
+                    case "3M":
+                        // "2024-02-29T00:00:00" -> "02/29"
+                        label = timestamp.substring(5, 7) + "/" + timestamp.substring(8, 10);
+                        break;
+                    case "1Y":
+                        // "2024-02" -> "02월"
+                        label = timestamp.substring(5, 7) + "월";
+                        break;
+                    default:
+                        label = timestamp.substring(11, 16);
                 }
                 
-                // 가격 변동률 계산
-                BigDecimal firstPrice = priceData.get(0);
-                BigDecimal priceChange = upbitCurrentPrice.subtract(firstPrice)
-                    .divide(firstPrice, 2, BigDecimal.ROUND_HALF_UP)
-                    .multiply(new BigDecimal("100"));
-
-                // 김치 프리미엄 계산
-                BigDecimal premium = upbitCurrentPrice.subtract(globalCurrentPrice)
-                    .divide(globalCurrentPrice, 4, BigDecimal.ROUND_HALF_UP)
-                    .multiply(new BigDecimal("100"));
+                labels.add(label);
                 
-                // 결과 맵 구성
-                result.put("labels", labels);
-                result.put("prices", priceData);
-                result.put("currentPrice", formatKoreanWon(upbitCurrentPrice));
-                result.put("highPrice", formatKoreanWon(upbitHighPrice));
-                result.put("lowPrice", formatKoreanWon(upbitLowPrice));
-                result.put("priceChange", priceChange.setScale(2, BigDecimal.ROUND_HALF_UP));
-                result.put("volume", formatVolume(upbitVolume));
-                result.put("globalPrice", formatKoreanWon(globalCurrentPrice));
-                result.put("premium", premium.setScale(2, BigDecimal.ROUND_HALF_UP));
-
-                cache.put(period, new CacheEntry(result));
+                // 종가 사용
+                BigDecimal candlePrice = new BigDecimal(candle.get("trade_price").toString());
+                prices.add(candlePrice);
             }
-        } catch (Exception e) {
-            result.put("labels", new ArrayList<>());
-            result.put("prices", new ArrayList<>());
-            result.put("currentPrice", "0원");
-            result.put("highPrice", "0원");
-            result.put("lowPrice", "0원");
-            result.put("priceChange", BigDecimal.ZERO);
-            result.put("volume", "0원");
-            result.put("globalPrice", "0원");
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("labels", labels);
+            result.put("prices", prices);
+            result.put("currentPrice", formatKoreanWon(currentPrice));
+            result.put("highPrice", formatKoreanWon(highPrice));
+            result.put("lowPrice", formatKoreanWon(lowPrice));
+            result.put("priceChange", changeRate.setScale(2, BigDecimal.ROUND_HALF_UP));
+            result.put("volume", formatVolume(volume));
+            result.put("globalPrice", formatKoreanWon(currentPrice));
             result.put("premium", BigDecimal.ZERO);
+
+            return result;
+
+        } catch (Exception e) {
+            System.err.println("차트 데이터 조회 중 오류 발생: " + e.getMessage());
+            e.printStackTrace();
+            
+            Map<String, Object> errorResult = new HashMap<>();
+            errorResult.put("labels", new ArrayList<>());
+            errorResult.put("prices", new ArrayList<>());
+            errorResult.put("currentPrice", "0원");
+            errorResult.put("highPrice", "0원");
+            errorResult.put("lowPrice", "0원");
+            errorResult.put("priceChange", BigDecimal.ZERO);
+            errorResult.put("volume", "0원");
+            errorResult.put("globalPrice", "0원");
+            errorResult.put("premium", BigDecimal.ZERO);
+            
+            return errorResult;
         }
-        
-        return result;
     }
 
     private String formatKoreanWon(BigDecimal value) {
@@ -189,25 +233,15 @@ public class ChartService {
             case "1D":
                 return String.format("%02d:%02d", dateTime.getHour(), dateTime.getMinute());
             case "1W":
-                return String.format("%02d/%02d %02d:%02d",
-                    dateTime.getMonthValue(), dateTime.getDayOfMonth(),
-                    dateTime.getHour(), dateTime.getMinute());
+                return String.format("%02d/%02d", dateTime.getMonthValue(), dateTime.getDayOfMonth());
             case "1M":
-                return String.format("%02d/%02d %02d:%02d",
-                    dateTime.getMonthValue(), dateTime.getDayOfMonth(),
-                    dateTime.getHour(), dateTime.getMinute());
+                return String.format("%02d/%02d", dateTime.getMonthValue(), dateTime.getDayOfMonth());
             case "3M":
-                return String.format("%02d/%02d %02d:%02d",
-                    dateTime.getMonthValue(), dateTime.getDayOfMonth(),
-                    dateTime.getHour(), dateTime.getMinute());
+                return String.format("%d/%02d", dateTime.getMonthValue(), dateTime.getDayOfMonth());
             case "1Y":
-                return String.format("%02d/%02d %02d:%02d",
-                    dateTime.getMonthValue(), dateTime.getDayOfMonth(),
-                    dateTime.getHour(), dateTime.getMinute());
+                return String.format("%d/%02d", dateTime.getMonthValue(), dateTime.getDayOfMonth());
             default:
-                return String.format("%02d/%02d %02d:%02d",
-                    dateTime.getMonthValue(), dateTime.getDayOfMonth(),
-                    dateTime.getHour(), dateTime.getMinute());
+                return String.format("%02d:%02d", dateTime.getHour(), dateTime.getMinute());
         }
     }
 } 
