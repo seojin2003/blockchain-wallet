@@ -1,0 +1,40 @@
+# 이클립스 관련
+.classpath
+.project
+.settings/
+bin/
+
+# 인텔리제이 관련
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Maven 관련
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+# 스프링부트 관련
+application-*.properties
+!application-example.properties
+
+# 로그 파일
+*.log
+logs/
+
+# OS 관련
+.DS_Store
+Thumbs.db
+
+# 기타
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
