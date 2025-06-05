@@ -16,7 +16,7 @@
             
             <c:if test="${param.error != null}">
                 <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-                    <span class="block sm:inline">잘못된 사용자명이나 비밀번호입니다.</span>
+                    <span class="block sm:inline">잘못된 아이디나 비밀번호입니다.</span>
                 </div>
             </c:if>
             
@@ -28,7 +28,7 @@
 
             <form action="/api/login" method="post" class="space-y-4">
                 <div>
-                    <label for="username" class="block text-sm font-medium text-gray-700">사용자명</label>
+                    <label for="username" class="block text-sm font-medium text-gray-700">아이디</label>
                     <input type="text" id="username" name="username" required
                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 </div>

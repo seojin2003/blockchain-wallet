@@ -1,6 +1,7 @@
 package com.wallet.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -13,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.text.NumberFormat;
 import java.util.Locale;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChartService {
@@ -42,21 +44,27 @@ public class ChartService {
     @SuppressWarnings("unchecked")
     public Map<String, Object> getPriceData(String period) {
         try {
+            log.info("차트 데이터 조회 시작 - 기간: {}", period);
+            
             // 현재가 정보 가져오기
             String tickerUrl = UPBIT_API_URL + "/ticker?markets=KRW-ETH";
+            log.info("티커 API 호출: {}", tickerUrl);
+            
             ResponseEntity<List> tickerResponse = restTemplate.getForEntity(tickerUrl, List.class);
             
             if (!tickerResponse.getStatusCode().is2xxSuccessful()) {
+                log.error("Upbit API 호출 실패 - 상태 코드: {}", tickerResponse.getStatusCode());
                 throw new RuntimeException("Upbit API 호출 실패: " + tickerResponse.getStatusCode());
             }
 
             List<Map<String, Object>> tickerData = (List<Map<String, Object>>) tickerResponse.getBody();
             if (tickerData == null || tickerData.isEmpty()) {
+                log.error("티커 데이터가 비어있음");
                 throw new RuntimeException("티커 데이터가 비어있습니다.");
             }
 
             Map<String, Object> ticker = tickerData.get(0);
-            System.out.println("티커 데이터: " + ticker);
+            log.info("티커 데이터: {}", ticker);
             
             // 데이터 파싱
             BigDecimal currentPrice = new BigDecimal(ticker.get("trade_price").toString());
@@ -67,44 +75,25 @@ public class ChartService {
                 .multiply(new BigDecimal("100"));
 
             // 캔들 데이터 가져오기
-            String candlesUrl = UPBIT_API_URL + "/candles/";
-            ResponseEntity<List> candlesResponse;
+            String candlesUrl = UPBIT_API_URL + "/candles/minutes/15?market=KRW-ETH&count=96"; // 15분봉 96개 (24시간)
             
-            // 기간별 URL 설정
-            switch (period) {
-                case "1D":
-                    candlesUrl += "minutes/5?market=KRW-ETH&count=288"; // 5분봉 288개 (24시간)
-                    break;
-                case "1W":
-                    candlesUrl += "days?market=KRW-ETH&count=7"; // 일봉 7개
-                    break;
-                case "1M":
-                    candlesUrl += "days?market=KRW-ETH&count=30"; // 일봉 30개
-                    break;
-                case "3M":
-                    candlesUrl += "weeks?market=KRW-ETH&count=12"; // 주봉 12개
-                    break;
-                case "1Y":
-                    candlesUrl += "months?market=KRW-ETH&count=12"; // 월봉 12개
-                    break;
-                default:
-                    candlesUrl += "minutes/5?market=KRW-ETH&count=288";
-            }
-            
-            System.out.println("캔들 URL: " + candlesUrl);
-            candlesResponse = restTemplate.getForEntity(candlesUrl, List.class);
+            log.info("캔들 API 호출: {}", candlesUrl);
+            ResponseEntity<List> candlesResponse = restTemplate.getForEntity(candlesUrl, List.class);
             
             if (!candlesResponse.getStatusCode().is2xxSuccessful()) {
+                log.error("캔들 API 호출 실패 - 상태 코드: {}", candlesResponse.getStatusCode());
                 throw new RuntimeException("Upbit API 호출 실패: " + candlesResponse.getStatusCode());
             }
 
             List<Map<String, Object>> candleData = (List<Map<String, Object>>) candlesResponse.getBody();
             if (candleData == null || candleData.isEmpty()) {
+                log.error("캔들 데이터가 비어있음");
                 throw new RuntimeException("캔들 데이터가 비어있습니다.");
             }
 
-            System.out.println("캔들 데이터 개수: " + candleData.size());
-            System.out.println("첫 번째 캔들: " + candleData.get(0));
+            log.info("캔들 데이터 개수: {}", candleData.size());
+            log.info("첫 번째 캔들: {}", candleData.get(0));
+            log.info("마지막 캔들: {}", candleData.get(candleData.size() - 1));
 
             // 차트 데이터 생성
             List<String> labels = new ArrayList<>();
@@ -114,46 +103,16 @@ public class ChartService {
             Collections.reverse(candleData);
             
             for (Map<String, Object> candle : candleData) {
-                // 시간 포맷팅
+                // 시간 포맷팅 (시간:분 형식)
                 String timestamp = candle.get("candle_date_time_kst").toString();
-                String label;
-                
-                switch (period) {
-                    case "1D":
-                        // 시간:분 형식으로 표시 (매 시간마다만 시간 표시)
-                        String hour = timestamp.substring(11, 13);
-                        String minute = timestamp.substring(14, 16);
-                        if (minute.equals("00")) {
-                            label = hour + ":00";
-                        } else {
-                            label = minute + "분";
-                        }
-                        break;
-                    case "1W":
-                        // "2024-02-29T00:00:00" -> "02/29"
-                        label = timestamp.substring(5, 7) + "/" + timestamp.substring(8, 10);
-                        break;
-                    case "1M":
-                        // "2024-02-29T00:00:00" -> "02/29"
-                        label = timestamp.substring(5, 7) + "/" + timestamp.substring(8, 10);
-                        break;
-                    case "3M":
-                        // "2024-02-29T00:00:00" -> "02/29"
-                        label = timestamp.substring(5, 7) + "/" + timestamp.substring(8, 10);
-                        break;
-                    case "1Y":
-                        // "2024-02" -> "02월"
-                        label = timestamp.substring(5, 7) + "월";
-                        break;
-                    default:
-                        label = timestamp.substring(11, 16);
-                }
-                
+                String label = timestamp.substring(11, 16);
                 labels.add(label);
                 
-                // 종가 사용
+                // 현재가 사용
                 BigDecimal candlePrice = new BigDecimal(candle.get("trade_price").toString());
                 prices.add(candlePrice);
+                
+                log.debug("데이터 포인트 추가 - 시간: {}, 가격: {}", label, candlePrice);
             }
 
             Map<String, Object> result = new HashMap<>();
@@ -167,11 +126,14 @@ public class ChartService {
             result.put("globalPrice", formatKoreanWon(currentPrice));
             result.put("premium", BigDecimal.ZERO);
 
+            log.info("차트 데이터 생성 완료 - 데이터 포인트 수: {}", prices.size());
+            log.debug("생성된 레이블: {}", labels);
+            log.debug("생성된 가격 데이터: {}", prices);
+            
             return result;
 
         } catch (Exception e) {
-            System.err.println("차트 데이터 조회 중 오류 발생: " + e.getMessage());
-            e.printStackTrace();
+            log.error("차트 데이터 조회 중 오류 발생: {}", e.getMessage(), e);
             
             Map<String, Object> errorResult = new HashMap<>();
             errorResult.put("labels", new ArrayList<>());

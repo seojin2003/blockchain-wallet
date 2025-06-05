@@ -31,7 +31,7 @@ public class MemberService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Member member = memberRepository.findByUsername(username);
         if (member == null) {
-            throw new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + username);
+            throw new UsernameNotFoundException("아이디를 찾을 수 없습니다: " + username);
         }
 
         return new User(member.getUsername(), member.getPassword(), new ArrayList<>());
@@ -40,7 +40,7 @@ public class MemberService implements UserDetailsService {
     @Transactional
     public Member register(String username, String password, String name) {
         if (memberRepository.existsByUsername(username)) {
-            throw new RuntimeException("이미 존재하는 사용자명입니다.");
+            throw new RuntimeException("이미 존재하는 아이디입니다.");
         }
 
         Member member = Member.builder()

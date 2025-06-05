@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -50,7 +51,9 @@ public class ChartController {
         }
 
         try {
+            log.info("차트 데이터 요청 - 기간: {}, 사용자: {}", period, user.getUsername());
             Map<String, Object> data = chartService.getPriceData(period);
+            log.info("차트 데이터 응답 - 데이터 포인트 수: {}", ((List<?>) data.get("prices")).size());
             return ResponseEntity.ok(data);
         } catch (Exception e) {
             log.error("Error while fetching price data: {}", e.getMessage());

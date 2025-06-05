@@ -92,6 +92,8 @@ public class WalletController {
     @GetMapping("/withdraw")
     public String withdrawForm(@AuthenticationPrincipal User user, Model model) {
         Member member = memberService.findByUsername(user.getUsername());
+        BigDecimal balance = walletService.getBalance(member.getWalletAddress());
+        member.setBalance(balance);
         model.addAttribute("member", member);
         return "withdraw";
     }

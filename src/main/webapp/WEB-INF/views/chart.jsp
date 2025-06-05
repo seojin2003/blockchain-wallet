@@ -181,10 +181,6 @@
 
             <div class="time-filter">
                 <button class="time-button active" data-period="1D">1일</button>
-                <button class="time-button" data-period="1W">1주</button>
-                <button class="time-button" data-period="1M">1개월</button>
-                <button class="time-button" data-period="3M">3개월</button>
-                <button class="time-button" data-period="1Y">1년</button>
             </div>
 
             <div class="chart-container">
@@ -197,6 +193,7 @@
         let chart = null;
         let lastUpdateTime = 0;
         const UPDATE_INTERVAL = 3000; // 3초
+        let currentPeriod = '1D'; // 현재 선택된 기간
 
         // 차트 초기화 함수
         function initializeChart() {
@@ -220,7 +217,7 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     animation: {
-                        duration: 0
+                        duration: 300
                     },
                     plugins: {
                         legend: {
@@ -247,8 +244,8 @@
                                 display: false
                             },
                             ticks: {
-                                maxRotation: 45,
-                                minRotation: 45,
+                                maxRotation: 0,
+                                minRotation: 0,
                                 autoSkip: true,
                                 maxTicksLimit: 12,
                                 font: {
@@ -258,18 +255,16 @@
                         },
                         y: {
                             grid: {
-                                color: '#f0f0f0'
+                                color: '#f0f0f0',
+                                lineWidth: 1
                             },
                             ticks: {
                                 callback: function(value) {
-                                    if (value >= 1000000000000) {
-                                        return (value / 1000000000000).toFixed(1) + '조';
-                                    } else if (value >= 100000000) {
-                                        return (value / 100000000).toFixed(1) + '억';
-                                    } else if (value >= 10000) {
-                                        return (value / 10000).toFixed(1) + '만';
-                                    }
-                                    return value;
+                                    return new Intl.NumberFormat('ko-KR', {
+                                        style: 'currency',
+                                        currency: 'KRW',
+                                        maximumFractionDigits: 0
+                                    }).format(value);
                                 },
                                 font: {
                                     size: 11
@@ -298,73 +293,101 @@
         }
 
         // 차트 데이터 업데이트 함수
-        function updateChart(period, force = false) {
+        async function updateChart(period, force = false) {
+            currentPeriod = period;
             const now = Date.now();
             if (!force && now - lastUpdateTime < UPDATE_INTERVAL) {
                 return;
             }
             lastUpdateTime = now;
 
-            fetch(`/api/chart/price?period=${period}&t=${now}`, {
-                headers: {
-                    'Cache-Control': 'no-cache',
-                    'Pragma': 'no-cache'
-                }
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        if (response.status === 401) {
-                            window.location.href = '/login';
-                            throw new Error('로그인이 필요합니다.');
-                        }
-                        throw new Error('API 호출 중 오류가 발생했습니다.');
+            try {
+                console.log('차트 업데이트 요청 - 기간:', period);
+                const response = await fetch(`/api/chart/price?period=${period}&t=${now}`, {
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
                     }
-                    return response.json();
-                })
-                .then(data => {
-                    if (!chart) {
-                        initializeChart();
-                    }
-
-                    // 차트 데이터 업데이트
-                    const chartUpdate = {
-                        labels: data.labels,
-                        datasets: [{
-                            ...chart.data.datasets[0],
-                            data: data.prices
-                        }]
-                    };
-                    chart.data = chartUpdate;
-                    chart.update('none'); // 애니메이션 없이 즉시 업데이트
-
-                    // 가격 정보 업데이트
-                    document.getElementById('currentPrice').textContent = data.currentPrice;
-                    document.getElementById('globalPrice').textContent = data.globalPrice;
-                    document.getElementById('highPrice').textContent = data.highPrice;
-                    document.getElementById('lowPrice').textContent = data.lowPrice;
-                    document.getElementById('volume').textContent = data.volume;
-
-                    const priceChange = document.getElementById('priceChange');
-                    const changeValue = parseFloat(data.priceChange);
-                    priceChange.textContent = (changeValue >= 0 ? '+' : '') + changeValue.toFixed(2) + '%';
-                    setPriceChangeColor(priceChange, changeValue);
-
-                    const premium = document.getElementById('premium');
-                    const premiumValue = parseFloat(data.premium);
-                    premium.textContent = (premiumValue >= 0 ? '+' : '') + premiumValue.toFixed(2) + '%';
-                    setPriceChangeColor(premium, premiumValue);
-                })
-                .catch(error => {
-                    console.error('Error:', error);
                 });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        window.location.href = '/login';
+                        throw new Error('로그인이 필요합니다.');
+                    }
+                    throw new Error('API 호출 중 오류가 발생했습니다.');
+                }
+
+                const data = await response.json();
+                console.log('받은 데이터:', data);
+                
+                if (!chart) {
+                    initializeChart();
+                }
+
+                // 차트 데이터 업데이트
+                chart.data.labels = data.labels;
+                chart.data.datasets[0].data = data.prices;
+
+                // Y축 범위 설정
+                const prices = data.prices.map(p => parseFloat(p));
+                const minPrice = Math.min(...prices);
+                const maxPrice = Math.max(...prices);
+                const padding = (maxPrice - minPrice) * 0.1;
+                
+                chart.options.scales.y.min = Math.floor(minPrice - padding);
+                chart.options.scales.y.max = Math.ceil(maxPrice + padding);
+                
+                // 차트 업데이트
+                chart.update();
+
+                // 가격 정보 업데이트
+                document.getElementById('currentPrice').textContent = data.currentPrice;
+                document.getElementById('globalPrice').textContent = data.globalPrice;
+                document.getElementById('highPrice').textContent = data.highPrice;
+                document.getElementById('lowPrice').textContent = data.lowPrice;
+                document.getElementById('volume').textContent = data.volume;
+
+                const priceChange = document.getElementById('priceChange');
+                const changeValue = parseFloat(data.priceChange);
+                priceChange.textContent = (changeValue >= 0 ? '+' : '') + changeValue.toFixed(2) + '%';
+                setPriceChangeColor(priceChange, changeValue);
+
+                const premium = document.getElementById('premium');
+                const premiumValue = parseFloat(data.premium);
+                premium.textContent = (premiumValue >= 0 ? '+' : '') + premiumValue.toFixed(2) + '%';
+                setPriceChangeColor(premium, premiumValue);
+
+                console.log('차트 업데이트 완료 - 기간:', period);
+
+            } catch (error) {
+                console.error('Error:', error);
+            }
         }
 
         // 시간 필터 버튼 이벤트
         document.querySelectorAll('.time-button').forEach(button => {
-            button.addEventListener('click', function() {
+            button.addEventListener('click', async function() {
+                // 이전 업데이트 타이머 제거
+                if (window.updateTimer) {
+                    clearInterval(window.updateTimer);
+                }
+                
                 document.querySelectorAll('.time-button').forEach(btn => btn.classList.remove('active'));
                 this.classList.add('active');
-                updateChart(this.dataset.period, true);
+                
+                // 차트 업데이트 전에 로딩 표시
+                if (chart) {
+                    chart.data.datasets[0].data = [];
+                    chart.update('none');
+                }
+                
+                await updateChart(this.dataset.period, true);
+                
+                // 새로운 업데이트 타이머 설정
+                window.updateTimer = setInterval(() => {
+                    updateChart(this.dataset.period);
+                }, UPDATE_INTERVAL);
             });
         });
 
@@ -372,13 +395,19 @@
         document.addEventListener('DOMContentLoaded', function() {
             initializeChart();
             updateChart('1D', true);
+            
+            // 초기 업데이트 타이머 설정
+            window.updateTimer = setInterval(() => {
+                updateChart('1D');
+            }, UPDATE_INTERVAL);
         });
 
-        // 3초마다 데이터 업데이트
-        setInterval(() => {
-            const activePeriod = document.querySelector('.time-button.active').dataset.period;
-            updateChart(activePeriod);
-        }, UPDATE_INTERVAL);
+        // 페이지 언로드 시 타이머 정리
+        window.addEventListener('beforeunload', function() {
+            if (window.updateTimer) {
+                clearInterval(window.updateTimer);
+            }
+        });
     </script>
 </body>
 </html> 

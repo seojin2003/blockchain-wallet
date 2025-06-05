@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
     checkUsernameButton.addEventListener('click', function() {
         const username = usernameInput.value.trim();
         if (!username) {
-            alert('사용자명을 입력해주세요.');
+            alert('아이디를 입력해주세요.');
             return;
         }
 
@@ -18,10 +18,10 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.exists) {
-                    alert('이미 사용 중인 사용자명입니다.');
+                    alert('이미 사용 중인 아이디입니다.');
                     isUsernameChecked = false;
                 } else {
-                    alert('사용 가능한 사용자명입니다.');
+                    alert('사용 가능한 아이디입니다.');
                     isUsernameChecked = true;
                 }
             })
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 중복체크 확인
         if (!isUsernameChecked) {
-            alert('사용자명 중복체크를 해주세요.');
+            alert('아이디 중복체크를 해주세요.');
             return;
         }
 

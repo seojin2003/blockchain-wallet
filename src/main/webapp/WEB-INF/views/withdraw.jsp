@@ -116,6 +116,18 @@
             background-color: #d1ecf1;
             border-color: #bee5eb;
         }
+        .form-control-static {
+            padding: 8px 12px;
+            background-color: #f8f9fa;
+            border: 1px solid #dce4ec;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        
+        .form-control-static strong {
+            color: #2c3e50;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
@@ -144,14 +156,16 @@
                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
                 
                 <div class="form-group">
-                    <label class="form-label">내 지갑 주소</label>
-                    <input type="text" class="form-control" value="${member.walletAddress}" readonly>
-                    <div class="form-text">이 주소에서 출금됩니다.</div>
+                    <label class="form-label">현재 잔액</label>
+                    <div class="form-control-static">
+                        <strong>${member.balance} ETH</strong>
+                    </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">현재 잔액</label>
-                    <input type="text" class="form-control" value="${member.balance} ETH" readonly>
+                    <label class="form-label">내 지갑 주소</label>
+                    <input type="text" class="form-control" value="${member.walletAddress}" readonly>
+                    <div class="form-text">이 주소에서 출금됩니다.</div>
                 </div>
 
                 <div class="form-group">
