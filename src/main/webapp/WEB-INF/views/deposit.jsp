@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -136,7 +137,11 @@
                 <a href="/chart">시세</a>
             </div>
             <div class="user-info">
-                ${member.name}님 | <a href="/logout" style="color: white; text-decoration: none;">로그아웃</a>
+                ${member.name}님 | 
+                <form action="/logout" method="post" style="display: inline;">
+                    <sec:csrfInput />
+                    <button type="submit" style="background: none; border: none; color: white; text-decoration: none; cursor: pointer;">로그아웃</button>
+                </form>
             </div>
         </div>
     </div>
@@ -149,7 +154,7 @@
                 입금하실 금액과 출발 주소를 입력해주세요.
             </div>
 
-            <form action="/api/wallet/deposit" method="post">
+            <form id="depositForm">
                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
                 
                 <div class="form-group">
@@ -178,47 +183,70 @@
         </div>
     </div>
     <script>
-        document.querySelector('form').addEventListener('submit', function(e) {
-            e.preventDefault();
+        // 알림 개수 업데이트 함수
+        function updateNotificationCount() {
+            $.get('/notifications/count', function(response) {
+                const count = response.count;
+                const badge = $('#notification-count');
+                if (count > 0) {
+                    badge.text(count).show();
+                } else {
+                    badge.hide();
+                }
+            });
+        }
+
+        $(document).ready(function() {
+            // 초기 알림 개수 업데이트
+            updateNotificationCount();
             
-            const amount = parseFloat(document.getElementById('amount').value);
-            const fromAddress = document.getElementById('fromAddress').value;
+            // 30초마다 알림 개수 업데이트
+            setInterval(updateNotificationCount, 30000);
 
-            if (!fromAddress.startsWith('0x')) {
-                alert('올바른 이더리움 주소를 입력해주세요. (0x로 시작)');
-                return;
-            }
-
-            if (isNaN(amount) || amount <= 0) {
-                alert('올바른 입금 금액을 입력해주세요.');
-                return;
-            }
-
-            if (confirm('입금을 진행하시겠습니까?')) {
-                const token = $("input[name='${_csrf.parameterName}']").val();
+            $('#depositForm').on('submit', function(e) {
+                e.preventDefault();
                 
-                $.ajax({
-                    url: '/api/wallet/deposit',
-                    type: 'POST',
-                    data: {
-                        fromAddress: fromAddress,
-                        amount: amount
-                    },
-                    beforeSend: function(xhr) {
-                        xhr.setRequestHeader('${_csrf.headerName}', token);
-                    },
-                    success: function(response) {
-                        // 입금 완료 알림 표시
-                        window.notificationManager.showDepositNotification(amount);
-                        alert('입금이 완료되었습니다.');
-                        window.location.href = '/wallet';
-                    },
-                    error: function(xhr) {
-                        const response = JSON.parse(xhr.responseText);
-                        alert(response.error || '입금 처리 중 오류가 발생했습니다.');
-                    }
-                });
-            }
+                const amount = parseFloat($('#amount').val());
+                const fromAddress = $('#fromAddress').val();
+
+                if (!fromAddress.startsWith('0x')) {
+                    alert('올바른 이더리움 주소를 입력해주세요. (0x로 시작)');
+                    return;
+                }
+
+                if (isNaN(amount) || amount <= 0) {
+                    alert('올바른 입금 금액을 입력해주세요.');
+                    return;
+                }
+
+                if (confirm('입금을 진행하시겠습니까?')) {
+                    const token = $("input[name='${_csrf.parameterName}']").val();
+                    
+                    $.ajax({
+                        url: '/api/wallet/deposit',
+                        type: 'POST',
+                        data: {
+                            fromAddress: fromAddress,
+                            amount: amount,
+                            _csrf: token
+                        },
+                        success: function(response) {
+                            alert('입금이 완료되었습니다.');
+                            // 알림 개수 업데이트
+                            updateNotificationCount();
+                            window.location.href = '/wallet';
+                        },
+                        error: function(xhr) {
+                            try {
+                                const response = JSON.parse(xhr.responseText);
+                                alert(response.error || '입금 처리 중 오류가 발생했습니다.');
+                            } catch (e) {
+                                alert('입금 처리 중 오류가 발생했습니다.');
+                            }
+                        }
+                    });
+                }
+            });
         });
     </script>
 </body>

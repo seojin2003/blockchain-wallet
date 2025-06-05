@@ -1,13 +1,17 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>시세 차트</title>
-    <link rel="stylesheet" href="/css/theme.css">
+    <title>시세</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/theme.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="/js/theme.js"></script>
+    <script src="/static/js/theme.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -25,9 +29,9 @@
             max-width: 1200px;
             margin: 0 auto;
             display: flex;
-            justify-content: space-between;
             align-items: center;
             padding: 0 20px;
+            gap: 40px;
         }
         .nav-logo {
             color: var(--nav-text);
@@ -44,6 +48,12 @@
             text-decoration: none;
             padding: 5px 10px;
             border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .nav-menu a i {
+            font-size: 16px;
         }
         .nav-menu a:hover {
             background-color: rgba(255,255,255,0.1);
@@ -138,7 +148,24 @@
             border-color: #3498db;
         }
         .user-info {
-            color: var(--nav-text);
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            font-size: 14px;
+        }
+        .user-info button {
+            color: white;
+            text-decoration: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 0;
+        }
+        .user-info button:hover {
+            text-decoration: underline;
         }
         .price-premium {
             font-size: 14px;
@@ -152,6 +179,22 @@
             color: var(--text-primary);
             margin-bottom: 20px;
         }
+        .notification-link {
+            position: relative;
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: #e74c3c;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 12px;
+            min-width: 18px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -159,11 +202,19 @@
         <div class="nav-container">
             <a href="/wallet" class="nav-logo">블록체인 월렛</a>
             <div class="nav-menu">
-                <a href="/wallet">지갑</a>
-                <a href="/chart" class="active">시세</a>
+                <a href="/wallet"><i class="fas fa-wallet"></i> 지갑</a>
+                <a href="/chart" class="active"><i class="fas fa-chart-line"></i> 시세</a>
+                <a href="/notifications" class="notification-link">
+                    <i class="fas fa-bell"></i>
+                    <span id="notification-count" class="notification-badge" style="display: none;">0</span>
+                </a>
             </div>
             <div class="user-info">
-                ${member.name}님 | <a href="/logout" style="color: white; text-decoration: none;">로그아웃</a>
+                ${member.name}님 | 
+                <form action="/logout" method="post" style="display: inline;">
+                    <sec:csrfInput />
+                    <button type="submit" style="background: none; border: none; color: var(--nav-text); text-decoration: none; cursor: pointer;">로그아웃</button>
+                </form>
             </div>
         </div>
     </div>
@@ -199,6 +250,10 @@
 
             <div class="time-filter">
                 <button class="time-button active" data-period="1D">1일</button>
+                <button class="time-button" data-period="1W">1주일</button>
+                <button class="time-button" data-period="1M">1개월</button>
+                <button class="time-button" data-period="3M">3개월</button>
+                <button class="time-button" data-period="1Y">1년</button>
             </div>
 
             <div class="chart-container">
@@ -225,12 +280,16 @@
                     datasets: [{
                         label: 'ETH/KRW',
                         data: [],
-                        borderColor: '#3498db',
-                        borderWidth: 2,
-                        pointRadius: 1,
-                        pointHoverRadius: 5,
+                        borderColor: isDarkMode ? '#3498db' : '#2563eb',
+                        backgroundColor: isDarkMode ? 'rgba(52, 152, 219, 0.1)' : 'rgba(37, 99, 235, 0.1)',
+                        borderWidth: 2.5,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        pointHoverBackgroundColor: isDarkMode ? '#3498db' : '#2563eb',
+                        pointHoverBorderColor: isDarkMode ? '#3498db' : '#2563eb',
+                        pointHoverBorderWidth: 2,
                         tension: 0.4,
-                        fill: false
+                        fill: true
                     }]
                 },
                 options: {
@@ -246,11 +305,21 @@
                         tooltip: {
                             mode: 'index',
                             intersect: false,
-                            backgroundColor: isDarkMode ? '#2c3e50' : 'rgba(255, 255, 255, 0.9)',
-                            titleColor: isDarkMode ? '#ffffff' : '#2c3e50',
-                            bodyColor: isDarkMode ? '#ffffff' : '#2c3e50',
+                            backgroundColor: isDarkMode ? '#2c3e50' : 'rgba(255, 255, 255, 0.95)',
+                            titleColor: isDarkMode ? '#ffffff' : '#1e293b',
+                            bodyColor: isDarkMode ? '#ffffff' : '#1e293b',
                             borderColor: isDarkMode ? '#34495e' : '#e2e8f0',
                             borderWidth: 1,
+                            padding: 12,
+                            cornerRadius: 8,
+                            titleFont: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 13
+                            },
+                            displayColors: false,
                             callbacks: {
                                 label: function(context) {
                                     let value = context.raw;
@@ -266,23 +335,27 @@
                     scales: {
                         x: {
                             grid: {
-                                display: false,
-                                color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                                display: true,
+                                color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                                drawBorder: false
                             },
                             ticks: {
                                 maxRotation: 0,
                                 minRotation: 0,
                                 autoSkip: true,
                                 maxTicksLimit: 12,
+                                padding: 8,
                                 font: {
-                                    size: 11
+                                    size: 11,
+                                    weight: '500'
                                 },
-                                color: isDarkMode ? '#a0aec0' : '#4a5568'
+                                color: isDarkMode ? '#a0aec0' : '#64748b'
                             }
                         },
                         y: {
                             grid: {
-                                color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                                color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                                drawBorder: false,
                                 lineWidth: 1
                             },
                             ticks: {
@@ -293,10 +366,12 @@
                                         maximumFractionDigits: 0
                                     }).format(value);
                                 },
+                                padding: 8,
                                 font: {
-                                    size: 11
+                                    size: 11,
+                                    weight: '500'
                                 },
-                                color: isDarkMode ? '#a0aec0' : '#4a5568'
+                                color: isDarkMode ? '#a0aec0' : '#64748b'
                             }
                         }
                     },
@@ -435,6 +510,24 @@
             if (window.updateTimer) {
                 clearInterval(window.updateTimer);
             }
+        });
+
+        function updateNotificationCount() {
+            $.get('/notifications/count', function(count) {
+                const badge = $('#notification-count');
+                if (count > 0) {
+                    badge.text(count).show();
+                } else {
+                    badge.hide();
+                }
+            });
+        }
+
+        // 페이지 로드 시 알림 개수 업데이트
+        $(document).ready(function() {
+            updateNotificationCount();
+            // 30초마다 알림 개수 업데이트
+            setInterval(updateNotificationCount, 30000);
         });
     </script>
 </body>

@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -8,6 +9,7 @@
     <link rel="stylesheet" href="/css/theme.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="/js/theme.js"></script>
+    <script src="/js/notification.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -147,7 +149,11 @@
                 <a href="/chart">시세</a>
             </div>
             <div class="user-info">
-                ${member.name}님 | <a href="/logout" style="color: white; text-decoration: none;">로그아웃</a>
+                ${member.name}님 | 
+                <form action="/logout" method="post" style="display: inline;">
+                    <sec:csrfInput />
+                    <button type="submit" style="background: none; border: none; color: white; text-decoration: none; cursor: pointer;">로그아웃</button>
+                </form>
             </div>
         </div>
     </div>
@@ -196,7 +202,26 @@
         </div>
     </div>
     <script>
+        // 알림 개수 업데이트 함수
+        function updateNotificationCount() {
+            $.get('/notifications/count', function(response) {
+                const count = response.count;
+                const badge = $('#notification-count');
+                if (count > 0) {
+                    badge.text(count).show();
+                } else {
+                    badge.hide();
+                }
+            });
+        }
+
         $(document).ready(function() {
+            // 초기 알림 개수 업데이트
+            updateNotificationCount();
+            
+            // 30초마다 알림 개수 업데이트
+            setInterval(updateNotificationCount, 30000);
+
             $('#withdrawForm').on('submit', function(e) {
                 e.preventDefault();
                 
@@ -226,6 +251,8 @@
                         },
                         success: function(response) {
                             alert('출금이 완료되었습니다.');
+                            // 알림 개수 업데이트
+                            updateNotificationCount();
                             window.location.href = '/wallet';
                         },
                         error: function(xhr) {

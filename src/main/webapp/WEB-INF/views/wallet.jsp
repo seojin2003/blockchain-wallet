@@ -1,13 +1,16 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>내 지갑</title>
-    <link rel="stylesheet" href="/css/theme.css">
+    <title>지갑</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/theme.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/static/js/theme.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -25,9 +28,9 @@
             max-width: 1200px;
             margin: 0 auto;
             display: flex;
-            justify-content: space-between;
             align-items: center;
             padding: 0 20px;
+            gap: 40px;
         }
         .nav-logo {
             color: var(--nav-text);
@@ -44,6 +47,12 @@
             text-decoration: none;
             padding: 5px 10px;
             border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .nav-menu a i {
+            font-size: 16px;
         }
         .nav-menu a:hover {
             background-color: rgba(255,255,255,0.1);
@@ -159,14 +168,24 @@
             color: var(--text-warning);
         }
         .user-info {
-            color: var(--nav-text);
+            margin-left: auto;
             display: flex;
             align-items: center;
             gap: 10px;
+            color: white;
+            font-size: 14px;
         }
-        .user-info a {
-            color: var(--nav-text);
+        .user-info button {
+            color: white;
             text-decoration: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 0;
+        }
+        .user-info button:hover {
+            text-decoration: underline;
         }
         .form-label {
             color: var(--text-secondary);
@@ -203,23 +222,42 @@
             min-width: 16px;
             text-align: center;
         }
+        .notification-link {
+            position: relative;
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: #e74c3c;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 12px;
+            min-width: 18px;
+            text-align: center;
+        }
     </style>
-    <script src="/js/theme.js"></script>
 </head>
 <body>
     <div class="nav">
         <div class="nav-container">
             <a href="/wallet" class="nav-logo">블록체인 월렛</a>
             <div class="nav-menu">
-                <a href="/wallet" class="active">지갑</a>
-                <a href="/chart">시세</a>
-                <a href="/notifications" class="notification-icon">
+                <a href="/wallet" class="active"><i class="fas fa-wallet"></i> 지갑</a>
+                <a href="/chart"><i class="fas fa-chart-line"></i> 시세</a>
+                <a href="/notifications" class="notification-link">
                     <i class="fas fa-bell"></i>
-                    <span class="notification-badge" id="notification-count"></span>
+                    <span id="notification-count" class="notification-badge" style="display: none;">0</span>
                 </a>
             </div>
             <div class="user-info">
-                ${member.name}님 | <a href="/logout" style="color: white; text-decoration: none;">로그아웃</a>
+                ${member.name}님 | 
+                <form action="/logout" method="post" style="display: inline;">
+                    <sec:csrfInput />
+                    <button type="submit" style="background: none; border: none; color: var(--nav-text); text-decoration: none; cursor: pointer;">로그아웃</button>
+                </form>
             </div>
         </div>
     </div>
@@ -327,6 +365,27 @@
         </div>
     </div>
     <script>
+        // 알림 개수 업데이트 함수
+        function updateNotificationCount() {
+            $.get('/notifications/count', function(response) {
+                const count = response.count;
+                const badge = $('#notification-count');
+                if (count > 0) {
+                    badge.text(count).show();
+                } else {
+                    badge.hide();
+                }
+            });
+        }
+
+        // 30초마다 알림 개수 업데이트
+        setInterval(updateNotificationCount, 30000);
+
+        // 초기 알림 개수 업데이트
+        $(document).ready(function() {
+            updateNotificationCount();
+        });
+
         document.addEventListener('DOMContentLoaded', function() {
             const createWalletForm = document.querySelector('form[action="/api/wallet/create"]');
             if (createWalletForm) {
@@ -354,25 +413,6 @@
                     });
                 });
             }
-        });
-
-        // 읽지 않은 알림 개수를 가져오는 함수
-        function updateNotificationCount() {
-            $.get('/notifications/count', function(count) {
-                const badge = $('#notification-count');
-                if (count > 0) {
-                    badge.text(count).show();
-                } else {
-                    badge.hide();
-                }
-            });
-        }
-
-        // 페이지 로드 시 알림 개수 업데이트
-        $(document).ready(function() {
-            updateNotificationCount();
-            // 30초마다 알림 개수 업데이트
-            setInterval(updateNotificationCount, 30000);
         });
     </script>
 </body>

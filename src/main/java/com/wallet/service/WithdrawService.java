@@ -16,10 +16,8 @@ public class WithdrawService {
 
     @Transactional
     public void processWithdraw(String username, String address, BigDecimal amount) {
-        Member member = memberRepository.findByUsername(username);
-        if (member == null) {
-            throw new RuntimeException("사용자를 찾을 수 없습니다.");
-        }
+        Member member = memberRepository.findByUsername(username)
+            .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
         // 잔액 검증
         if (member.getBalance().compareTo(amount) < 0) {

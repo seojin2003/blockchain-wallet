@@ -1,3 +1,4 @@
+DROP DATABASE IF EXISTS blockchain_wallet;
 CREATE DATABASE IF NOT EXISTS blockchain_wallet;
 USE blockchain_wallet;
 
@@ -6,10 +7,11 @@ CREATE TABLE IF NOT EXISTS members (
     username VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     name VARCHAR(50) NOT NULL,
-    wallet_address VARCHAR(255),
+    wallet_address VARCHAR(42),
     private_key VARCHAR(255),
     public_key VARCHAR(255),
     recovery_code VARCHAR(255),
+    balance DECIMAL(20,8) NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -18,13 +20,27 @@ CREATE TABLE IF NOT EXISTS transactions (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     member_id BIGINT NOT NULL,
     type VARCHAR(20) NOT NULL,
-    amount DECIMAL(19,8) NOT NULL,
-    from_address VARCHAR(255) NOT NULL,
-    to_address VARCHAR(255) NOT NULL,
+    amount DECIMAL(20,8) NOT NULL,
+    from_address VARCHAR(42) NOT NULL,
+    to_address VARCHAR(42) NOT NULL,
     status VARCHAR(20) NOT NULL,
-    transaction_hash VARCHAR(255) NOT NULL,
+    transaction_hash VARCHAR(66) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (member_id) REFERENCES members(id)
+    FOREIGN KEY (member_id) REFERENCES members(id),
+    UNIQUE KEY uk_transaction_hash (transaction_hash),
+    INDEX idx_member_created (member_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS notifications (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    member_id BIGINT NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    message TEXT NOT NULL,
+    type VARCHAR(20) NOT NULL,
+    is_read BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (member_id) REFERENCES members(id),
+    INDEX idx_member_created (member_id, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS persistent_logins (

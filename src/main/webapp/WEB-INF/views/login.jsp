@@ -5,64 +5,138 @@
 <head>
     <meta charset="UTF-8">
     <title>로그인 - 블록체인 월렛</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/theme.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+        .login-container {
+            background-color: var(--bg-secondary);
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            width: 100%;
+            max-width: 400px;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-weight: bold;
+        }
+        .form-control {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        .btn {
+            width: 100%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+        .btn:hover {
+            opacity: 0.9;
+        }
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+        .signup-link {
+            text-align: center;
+            margin-top: 1rem;
+            color: var(--text-secondary);
+        }
+        .signup-link a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .signup-link a:hover {
+            text-decoration: underline;
+        }
+        .error-message {
+            background-color: #fee2e2;
+            border: 1px solid #ef4444;
+            color: #b91c1c;
+            padding: 0.75rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        .error-message.show {
+            display: block;
+        }
+    </style>
 </head>
-<body class="bg-gray-100">
-    <div class="min-h-screen flex items-center justify-center">
-        <div class="bg-white p-8 rounded-lg shadow-lg w-96">
-            <h2 class="text-2xl font-bold mb-6 text-center">로그인</h2>
+<body>
+    <div class="login-container">
+        <h1 class="text-2xl font-bold mb-6 text-center">로그인</h1>
+        
+        <div id="error-message" class="error-message ${not empty param.error ? 'show' : ''}">
+            <c:choose>
+                <c:when test="${not empty sessionScope.loginError}">
+                    ${sessionScope.loginError}
+                </c:when>
+                <c:otherwise>
+                    아이디 또는 비밀번호가 올바르지 않습니다.
+                </c:otherwise>
+            </c:choose>
+        </div>
+
+        <form action="/login" method="post">
+            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
             
-            <c:if test="${param.error != null}">
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-                    <span class="block sm:inline">잘못된 아이디나 비밀번호입니다.</span>
-                </div>
-            </c:if>
-            
-            <c:if test="${param.logout != null}">
-                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-                    <span class="block sm:inline">로그아웃되었습니다.</span>
-                </div>
-            </c:if>
-
-            <form action="/login" method="post" class="space-y-4">
-                <div>
-                    <label for="username" class="block text-sm font-medium text-gray-700">아이디</label>
-                    <input type="text" id="username" name="username" required
-                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                </div>
-
-                <div>
-                    <label for="password" class="block text-sm font-medium text-gray-700">비밀번호</label>
-                    <input type="password" id="password" name="password" required
-                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                </div>
-
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <input type="checkbox" id="remember-me" name="remember-me"
-                               class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
-                        <label for="remember-me" class="ml-2 block text-sm text-gray-900">로그인 상태 유지</label>
-                    </div>
-                </div>
-
-                <div>
-                    <button type="submit"
-                            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                        로그인
-                    </button>
-                </div>
-
-                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
-            </form>
-
-            <div class="mt-4 text-center">
-                <a href="/register" class="text-sm text-indigo-600 hover:text-indigo-500">
-                    계정이 없으신가요? 회원가입
-                </a>
+            <div class="form-group">
+                <label class="form-label" for="username">아이디</label>
+                <input type="text" id="username" name="username" class="form-control" required>
             </div>
+
+            <div class="form-group">
+                <label class="form-label" for="password">비밀번호</label>
+                <input type="password" id="password" name="password" class="form-control" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">로그인</button>
+        </form>
+
+        <div class="signup-link">
+            계정이 없으신가요? <a href="/signup">회원가입</a>
         </div>
     </div>
+
+    <script>
+        // URL 파라미터에서 에러 여부 확인
+        const urlParams = new URLSearchParams(window.location.search);
+        const hasError = urlParams.get('error') !== null;
+        const errorMessage = document.getElementById('error-message');
+        
+        if (hasError) {
+            errorMessage.classList.add('show');
+            // 세션에서 에러 메시지 제거
+            <% session.removeAttribute("loginError"); %>
+        }
+    </script>
 </body>
 </html> 

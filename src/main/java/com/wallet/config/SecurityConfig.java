@@ -1,28 +1,36 @@
 package com.wallet.config;
 
-import com.wallet.service.MemberService;
+import com.wallet.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+@RequiredArgsConstructor
+public class SecurityConfig {
 
-    @Autowired
-    private MemberService memberService;
+    private final CustomUserDetailsService userDetailsService;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -37,44 +45,61 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return handler;
     }
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    @Bean
+    public AuthenticationFailureHandler failureHandler() {
+        return new AuthenticationFailureHandler() {
+            @Override
+            public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
+                                              AuthenticationException exception) throws IOException, ServletException {
+                String errorMessage;
+                
+                if (exception.getCause() instanceof UsernameNotFoundException || 
+                    exception instanceof UsernameNotFoundException) {
+                    errorMessage = "존재하지 않는 회원입니다.";
+                } else if (exception instanceof BadCredentialsException) {
+                    errorMessage = "비밀번호가 올바르지 않습니다.";
+                } else {
+                    errorMessage = "로그인에 실패했습니다.";
+                }
+                
+                request.getSession().setAttribute("loginError", errorMessage);
+                response.sendRedirect("/login?error=true");
+            }
+        };
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+        return authConfig.getAuthenticationManager();
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
         http
+            .authenticationManager(authenticationManager)
+            .userDetailsService(userDetailsService)
+            .csrf()
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .and()
             .authorizeRequests()
-                .antMatchers("/css/**", "/js/**", "/images/**", "/static/**", "/resources/**").permitAll()
-                .antMatchers("/", "/login", "/register", "/api/register", "/api/check-username").permitAll()
-                .antMatchers("/wallet", "/chart", "/deposit", "/withdraw").authenticated()
-                .antMatchers("/api/wallet/**", "/api/chart/**").authenticated()
+                .antMatchers("/css/**", "/js/**", "/images/**", "/static/**").permitAll()
+                .antMatchers("/", "/login", "/register", "/signup", "/api/register", "/api/check-username").permitAll()
                 .anyRequest().authenticated()
             .and()
             .formLogin()
                 .loginPage("/login")
                 .loginProcessingUrl("/login")
-                .usernameParameter("username")
-                .passwordParameter("password")
                 .successHandler(successHandler())
-                .failureUrl("/login?error=true")
+                .failureHandler(failureHandler())
                 .permitAll()
             .and()
             .logout()
-                .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+                .logoutUrl("/logout")
                 .logoutSuccessUrl("/login")
                 .invalidateHttpSession(true)
-                .deleteCookies("JSESSIONID")
-            .and()
-            .sessionManagement()
-                .maximumSessions(1)
-                .expiredUrl("/login")
-            .and()
-            .and()
-            .csrf()
-                .ignoringAntMatchers("/api/register", "/api/check-username", "/api/wallet/deposit", "/api/wallet/withdraw", "/api/wallet/create", "/login")
-                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
-    }
+                .deleteCookies("JSESSIONID", "XSRF-TOKEN")
+                .permitAll();
 
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(memberService)
-            .passwordEncoder(passwordEncoder());
+        return http.build();
     }
 } 

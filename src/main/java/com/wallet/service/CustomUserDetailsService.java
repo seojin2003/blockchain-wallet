@@ -22,13 +22,11 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Member member = memberRepository.findByUsername(username);
-        if (member == null) {
-            throw new UsernameNotFoundException("아이디를 찾을 수 없습니다: " + username);
-        }
+        Member member = memberRepository.findByUsername(username)
+            .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 회원입니다."));
 
-        return new User(member.getUsername(),
-                member.getPassword(),
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
+        return new User(member.getUsername(), 
+                      member.getPassword(),
+                      Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")));
     }
 } 

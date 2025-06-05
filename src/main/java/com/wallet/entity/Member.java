@@ -30,7 +30,7 @@ public class Member {
     @Column(nullable = false, length = 50)
     private String name;
     
-    @Column(name = "wallet_address", length = 255)
+    @Column(name = "wallet_address", length = 42)
     private String walletAddress;
     
     @Column(name = "private_key", length = 255)
@@ -48,16 +48,22 @@ public class Member {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     
-    @Column(precision = 18, scale = 8)
+    @Column(precision = 20, scale = 8)
     private BigDecimal balance = BigDecimal.ZERO;
     
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
     private List<Transaction> transactions = new ArrayList<>();
     
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+    private List<Notification> notifications = new ArrayList<>();
+    
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+        if (balance == null) {
+            balance = BigDecimal.ZERO;
+        }
     }
     
     @PreUpdate

@@ -4,6 +4,7 @@ import com.wallet.entity.Member;
 import com.wallet.entity.Transaction;
 import com.wallet.entity.TransactionType;
 import com.wallet.entity.TransactionStatus;
+import com.wallet.entity.NotificationType;
 import com.wallet.repository.MemberRepository;
 import com.wallet.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
@@ -11,12 +12,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.Keys;
+import org.web3j.utils.Numeric;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Random;
-import java.util.UUID;
+import java.security.SecureRandom;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +25,8 @@ public class WalletService {
 
     private final MemberRepository memberRepository;
     private final TransactionRepository transactionRepository;
-    private final Random random = new Random();
+    private final NotificationService notificationService;
+    private final SecureRandom secureRandom = new SecureRandom();
 
     @Transactional
     public void createWallet(Member member) throws Exception {
@@ -39,7 +41,9 @@ public class WalletService {
     @Transactional(readOnly = true)
     public BigDecimal getBalance(String address) {
         // 해당 주소를 가진 회원 찾기
-        Member member = memberRepository.findByWalletAddress(address);
+        Member member = memberRepository.findByWalletAddress(address)
+            .orElse(null);
+            
         if (member == null) {
             return BigDecimal.ZERO;
         }
@@ -74,19 +78,18 @@ public class WalletService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        return transactionRepository.save(transaction);
+        transaction = transactionRepository.save(transaction);
+        notificationService.createTransactionNotification(member, amount.toString(), NotificationType.DEPOSIT);
+        return transaction;
     }
 
     @Transactional
-    public Transaction withdraw(Member member, String toAddress, BigDecimal amount) throws Exception {
+    public Transaction withdraw(Member member, String toAddress, BigDecimal amount) {
         BigDecimal balance = getBalance(member.getWalletAddress());
         if (balance.compareTo(amount) < 0) {
-            throw new Exception("잔액이 부족합니다.");
+            throw new RuntimeException("잔액이 부족합니다.");
         }
 
-        String transactionHash = generateDummyTransactionHash();
-
-        // 출금 거래 생성 (보내는 사람)
         Transaction withdrawTransaction = Transaction.builder()
                 .member(member)
                 .type("WITHDRAW")
@@ -94,17 +97,17 @@ public class WalletService {
                 .fromAddress(member.getWalletAddress())
                 .toAddress(toAddress)
                 .status("COMPLETED")
-                .transactionHash(transactionHash)
+                .transactionHash(generateDummyTransactionHash())
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        // 출금 거래 저장
         withdrawTransaction = transactionRepository.save(withdrawTransaction);
+        notificationService.createTransactionNotification(member, amount.toString(), NotificationType.WITHDRAW);
 
-        // 받는 사람의 Member 찾기
-        Member receiver = memberRepository.findByWalletAddress(toAddress);
-        
-        // 받는 사람이 우리 서비스의 회원인 경우 입금 거래도 생성
+        // 수신자가 우리 시스템의 사용자인 경우 입금 처리
+        Member receiver = memberRepository.findByWalletAddress(toAddress)
+            .orElse(null);
+
         if (receiver != null) {
             Transaction depositTransaction = Transaction.builder()
                     .member(receiver)
@@ -113,11 +116,12 @@ public class WalletService {
                     .fromAddress(member.getWalletAddress())
                     .toAddress(toAddress)
                     .status("COMPLETED")
-                    .transactionHash(transactionHash)  // 같은 거래 해시 사용
+                    .transactionHash(generateDummyTransactionHash())  // 새로운 해시 생성
                     .createdAt(LocalDateTime.now())
                     .build();
             
             transactionRepository.save(depositTransaction);
+            notificationService.createTransactionNotification(receiver, amount.toString(), NotificationType.DEPOSIT);
         }
 
         return withdrawTransaction;
@@ -129,6 +133,8 @@ public class WalletService {
     }
     
     private String generateDummyTransactionHash() {
-        return "0x" + UUID.randomUUID().toString().replace("-", "");
+        byte[] randomBytes = new byte[32];
+        secureRandom.nextBytes(randomBytes);
+        return "0x" + Numeric.toHexString(randomBytes).substring(2);  // "0x" 제외한 64자리 문자열
     }
 } 

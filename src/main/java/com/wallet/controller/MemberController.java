@@ -17,6 +17,11 @@ public class MemberController {
 
     private final MemberService memberService;
 
+    @GetMapping("/signup")
+    public String signupForm() {
+        return "redirect:/register";
+    }
+
     @GetMapping("/register")
     public String registerForm() {
         return "register";
