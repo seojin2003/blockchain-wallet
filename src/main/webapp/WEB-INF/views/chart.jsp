@@ -7,11 +7,12 @@
     <meta charset="UTF-8">
     <title>시세</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/theme.css">
+    <link rel="stylesheet" href="/css/theme.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="/static/js/theme.js"></script>
+    <script src="/js/theme.js"></script>
+    <script src="/js/notification.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -181,19 +182,22 @@
         }
         .notification-link {
             position: relative;
+            display: inline-block;
         }
         
         .notification-badge {
             position: absolute;
             top: -8px;
             right: -8px;
-            background-color: #e74c3c;
+            background-color: #dc3545;
             color: white;
             border-radius: 50%;
             padding: 2px 6px;
             font-size: 12px;
             min-width: 18px;
             text-align: center;
+            font-weight: bold;
+            z-index: 1;
         }
     </style>
 </head>
@@ -494,12 +498,36 @@
             });
         });
 
-        // 페이지 로드 시 차트 초기화 및 데이터 로드
-        document.addEventListener('DOMContentLoaded', function() {
+        function updateNotificationCount() {
+            $.ajax({
+                url: '/notifications/count',
+                method: 'GET',
+                success: function(response) {
+                    const badge = $('#notification-count');
+                    if (response.count > 0) {
+                        badge.text(response.count).show();
+                    } else {
+                        badge.hide();
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('알림 개수 업데이트 실패:', error);
+                }
+            });
+        }
+
+        $(document).ready(function() {
+            // 초기 알림 개수 업데이트
+            updateNotificationCount();
+            
+            // 30초마다 알림 개수 업데이트
+            setInterval(updateNotificationCount, 30000);
+
+            // 차트 초기화 및 업데이트
             initializeChart();
             updateChart('1D', true);
             
-            // 초기 업데이트 타이머 설정
+            // 차트 자동 업데이트 타이머 설정
             window.updateTimer = setInterval(() => {
                 updateChart('1D');
             }, UPDATE_INTERVAL);
@@ -510,24 +538,6 @@
             if (window.updateTimer) {
                 clearInterval(window.updateTimer);
             }
-        });
-
-        function updateNotificationCount() {
-            $.get('/notifications/count', function(count) {
-                const badge = $('#notification-count');
-                if (count > 0) {
-                    badge.text(count).show();
-                } else {
-                    badge.hide();
-                }
-            });
-        }
-
-        // 페이지 로드 시 알림 개수 업데이트
-        $(document).ready(function() {
-            updateNotificationCount();
-            // 30초마다 알림 개수 업데이트
-            setInterval(updateNotificationCount, 30000);
         });
     </script>
 </body>

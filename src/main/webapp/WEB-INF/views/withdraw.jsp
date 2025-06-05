@@ -145,14 +145,18 @@
         <div class="nav-container">
             <a href="/wallet" class="nav-logo">블록체인 월렛</a>
             <div class="nav-menu">
-                <a href="/wallet">지갑</a>
-                <a href="/chart">시세</a>
+                <a href="/wallet"><i class="fas fa-wallet"></i> 지갑</a>
+                <a href="/chart"><i class="fas fa-chart-line"></i> 시세</a>
+                <a href="/notifications" class="notification-link">
+                    <i class="fas fa-bell"></i>
+                    <span id="notification-count" class="notification-badge" style="display: none;">0</span>
+                </a>
             </div>
             <div class="user-info">
                 ${member.name}님 | 
                 <form action="/logout" method="post" style="display: inline;">
                     <sec:csrfInput />
-                    <button type="submit" style="background: none; border: none; color: white; text-decoration: none; cursor: pointer;">로그아웃</button>
+                    <button type="submit" style="background: none; border: none; color: var(--nav-text); text-decoration: none; cursor: pointer;">로그아웃</button>
                 </form>
             </div>
         </div>
@@ -202,10 +206,8 @@
         </div>
     </div>
     <script>
-        // 알림 개수 업데이트 함수
         function updateNotificationCount() {
-            $.get('/notifications/count', function(response) {
-                const count = response.count;
+            $.get('/notifications/count', function(count) {
                 const badge = $('#notification-count');
                 if (count > 0) {
                     badge.text(count).show();
@@ -216,9 +218,7 @@
         }
 
         $(document).ready(function() {
-            // 초기 알림 개수 업데이트
             updateNotificationCount();
-            
             // 30초마다 알림 개수 업데이트
             setInterval(updateNotificationCount, 30000);
 
