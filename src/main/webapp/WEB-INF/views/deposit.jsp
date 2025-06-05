@@ -5,15 +5,19 @@
 <head>
     <meta charset="UTF-8">
     <title>입금하기</title>
+    <link rel="stylesheet" href="/css/theme.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/js/theme.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f5f5f5;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
         }
         .nav {
-            background-color: #2c3e50;
+            background-color: var(--nav-bg);
             padding: 15px 0;
             margin-bottom: 30px;
         }
@@ -26,7 +30,7 @@
             padding: 0 20px;
         }
         .nav-logo {
-            color: white;
+            color: var(--nav-text);
             font-size: 20px;
             font-weight: bold;
             text-decoration: none;
@@ -36,7 +40,7 @@
             gap: 20px;
         }
         .nav-menu a {
-            color: white;
+            color: var(--nav-text);
             text-decoration: none;
             padding: 5px 10px;
             border-radius: 4px;
@@ -53,9 +57,9 @@
             padding: 20px;
         }
         .card {
-            background-color: white;
+            background-color: var(--bg-secondary);
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: var(--card-shadow);
             padding: 20px;
         }
         .form-group {
@@ -65,19 +69,21 @@
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
-            color: #666;
+            color: var(--text-secondary);
         }
         .form-control {
             width: 100%;
             padding: 8px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             border-radius: 4px;
             box-sizing: border-box;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
         }
         .form-text {
             margin-top: 5px;
             font-size: 14px;
-            color: #666;
+            color: var(--text-secondary);
         }
         .button {
             padding: 10px 20px;
@@ -111,9 +117,12 @@
             border-radius: 4px;
         }
         .alert-info {
-            color: #0c5460;
-            background-color: #d1ecf1;
-            border-color: #bee5eb;
+            background-color: var(--alert-info-bg);
+            color: var(--alert-info-text);
+            border-color: var(--alert-info-border);
+        }
+        h1 {
+            color: var(--text-primary);
         }
     </style>
 </head>
@@ -167,7 +176,6 @@
             </form>
         </div>
     </div>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         document.querySelector('form').addEventListener('submit', function(e) {
             e.preventDefault();

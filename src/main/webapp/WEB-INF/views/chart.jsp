@@ -5,16 +5,19 @@
 <head>
     <meta charset="UTF-8">
     <title>시세 차트</title>
+    <link rel="stylesheet" href="/css/theme.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/js/theme.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f5f5f5;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
         }
         .nav {
-            background-color: #2c3e50;
+            background-color: var(--nav-bg);
             padding: 15px 0;
             margin-bottom: 30px;
         }
@@ -27,7 +30,7 @@
             padding: 0 20px;
         }
         .nav-logo {
-            color: white;
+            color: var(--nav-text);
             font-size: 20px;
             font-weight: bold;
             text-decoration: none;
@@ -37,7 +40,7 @@
             gap: 20px;
         }
         .nav-menu a {
-            color: white;
+            color: var(--nav-text);
             text-decoration: none;
             padding: 5px 10px;
             border-radius: 4px;
@@ -54,9 +57,9 @@
             padding: 20px;
         }
         .card {
-            background-color: white;
+            background-color: var(--bg-secondary);
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: var(--card-shadow);
             padding: 20px;
             margin-bottom: 20px;
         }
@@ -70,37 +73,47 @@
             position: relative;
             height: 400px;
             margin-top: 20px;
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
         }
         .price-info {
             display: flex;
             justify-content: space-between;
             margin-bottom: 20px;
             padding: 20px;
-            background-color: #f8f9fa;
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
         }
         .price-item {
             text-align: center;
+            padding: 10px;
+            flex: 1;
+            margin: 0 5px;
+            border-radius: 6px;
+            background-color: var(--bg-primary);
         }
         .price-label {
             font-size: 14px;
-            color: #666;
+            color: var(--text-secondary);
             margin-bottom: 5px;
         }
         .price-value {
             font-size: 24px;
             font-weight: bold;
-            color: #2c3e50;
+            color: var(--text-primary);
         }
         .price-change {
             font-size: 14px;
             margin-top: 5px;
         }
         .price-up {
-            color: #2ecc71;
+            color: #ff5757 !important;
         }
         .price-down {
-            color: #e74c3c;
+            color: #4d9eff !important;
         }
         .time-filter {
             display: flex;
@@ -109,22 +122,23 @@
         }
         .time-button {
             padding: 8px 16px;
-            border: none;
+            border: 1px solid var(--border-color);
             border-radius: 4px;
-            background-color: #f8f9fa;
-            color: #666;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
             cursor: pointer;
             transition: all 0.2s;
         }
         .time-button:hover {
-            background-color: #e9ecef;
+            background-color: var(--bg-primary);
         }
         .time-button.active {
-            background-color: #2c3e50;
+            background-color: #3498db;
             color: white;
+            border-color: #3498db;
         }
         .user-info {
-            color: white;
+            color: var(--nav-text);
         }
         .price-premium {
             font-size: 14px;
@@ -133,6 +147,10 @@
         }
         .price-premium::before {
             content: "프리미엄 ";
+        }
+        h1, h2 {
+            color: var(--text-primary);
+            margin-bottom: 20px;
         }
     </style>
 </head>
@@ -198,6 +216,8 @@
         // 차트 초기화 함수
         function initializeChart() {
             const ctx = document.getElementById('priceChart').getContext('2d');
+            const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+            
             chart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -205,7 +225,7 @@
                     datasets: [{
                         label: 'ETH/KRW',
                         data: [],
-                        borderColor: '#2c3e50',
+                        borderColor: '#3498db',
                         borderWidth: 2,
                         pointRadius: 1,
                         pointHoverRadius: 5,
@@ -226,6 +246,11 @@
                         tooltip: {
                             mode: 'index',
                             intersect: false,
+                            backgroundColor: isDarkMode ? '#2c3e50' : 'rgba(255, 255, 255, 0.9)',
+                            titleColor: isDarkMode ? '#ffffff' : '#2c3e50',
+                            bodyColor: isDarkMode ? '#ffffff' : '#2c3e50',
+                            borderColor: isDarkMode ? '#34495e' : '#e2e8f0',
+                            borderWidth: 1,
                             callbacks: {
                                 label: function(context) {
                                     let value = context.raw;
@@ -241,7 +266,8 @@
                     scales: {
                         x: {
                             grid: {
-                                display: false
+                                display: false,
+                                color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
                             },
                             ticks: {
                                 maxRotation: 0,
@@ -250,12 +276,13 @@
                                 maxTicksLimit: 12,
                                 font: {
                                     size: 11
-                                }
+                                },
+                                color: isDarkMode ? '#a0aec0' : '#4a5568'
                             }
                         },
                         y: {
                             grid: {
-                                color: '#f0f0f0',
+                                color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
                                 lineWidth: 1
                             },
                             ticks: {
@@ -268,7 +295,8 @@
                                 },
                                 font: {
                                     size: 11
-                                }
+                                },
+                                color: isDarkMode ? '#a0aec0' : '#4a5568'
                             }
                         }
                     },
@@ -284,11 +312,11 @@
         // 가격 변화 색상 설정 함수
         function setPriceChangeColor(element, value) {
             if (value > 0) {
-                element.style.color = '#c84a31';
+                element.className = 'price-change price-up';
             } else if (value < 0) {
-                element.style.color = '#1261c4';
+                element.className = 'price-change price-down';
             } else {
-                element.style.color = '#333';
+                element.className = 'price-change';
             }
         }
 

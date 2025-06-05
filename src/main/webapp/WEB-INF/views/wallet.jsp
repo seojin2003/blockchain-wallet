@@ -5,15 +5,17 @@
 <head>
     <meta charset="UTF-8">
     <title>내 지갑</title>
+    <link rel="stylesheet" href="/css/theme.css">
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f5f5f5;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
         }
         .nav {
-            background-color: #2c3e50;
+            background-color: var(--nav-bg);
             padding: 15px 0;
             margin-bottom: 30px;
         }
@@ -26,7 +28,7 @@
             padding: 0 20px;
         }
         .nav-logo {
-            color: white;
+            color: var(--nav-text);
             font-size: 20px;
             font-weight: bold;
             text-decoration: none;
@@ -36,7 +38,7 @@
             gap: 20px;
         }
         .nav-menu a {
-            color: white;
+            color: var(--nav-text);
             text-decoration: none;
             padding: 5px 10px;
             border-radius: 4px;
@@ -53,17 +55,18 @@
             padding: 20px;
         }
         .card {
-            background-color: white;
+            background-color: var(--bg-secondary);
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: var(--card-shadow);
             padding: 20px;
             margin-bottom: 20px;
         }
         .info-section {
             margin-bottom: 30px;
             padding: 20px;
-            background-color: #f8f9fa;
+            background-color: var(--bg-secondary);
             border-radius: 8px;
+            border: 1px solid var(--border-color);
         }
         .info-item {
             margin-bottom: 15px;
@@ -72,12 +75,13 @@
         }
         .info-label {
             font-weight: bold;
-            color: #666;
+            color: var(--text-secondary);
             width: 120px;
         }
         .info-value {
             flex: 1;
             word-break: break-all;
+            color: var(--text-primary);
         }
         .button-group {
             margin-top: 20px;
@@ -90,8 +94,8 @@
             border: none;
             cursor: pointer;
             text-decoration: none;
-            font-weight: bold;
-            transition: background-color 0.2s;
+            text-align: center;
+            display: inline-block;
         }
         .button-deposit {
             background-color: #2ecc71;
@@ -113,12 +117,13 @@
         th, td {
             padding: 12px;
             text-align: left;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
         }
         th {
-            background-color: #f8f9fa;
+            background-color: var(--bg-secondary);
             font-weight: bold;
-            color: #666;
+            color: var(--text-secondary);
         }
         .type-deposit {
             color: #2ecc71;
@@ -143,7 +148,24 @@
         .user-info {
             color: white;
         }
+        .form-label {
+            color: var(--text-secondary);
+        }
+        .form-control {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+        .alert-info {
+            background-color: var(--alert-info-bg);
+            color: var(--alert-info-text);
+            border-color: var(--alert-info-border);
+        }
+        h1, h2 {
+            color: var(--text-primary);
+        }
     </style>
+    <script src="/js/theme.js"></script>
 </head>
 <body>
     <div class="nav">
