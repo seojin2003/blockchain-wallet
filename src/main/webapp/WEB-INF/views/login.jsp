@@ -26,7 +26,7 @@
                 </div>
             </c:if>
 
-            <form action="/api/login" method="post" class="space-y-4">
+            <form action="/login" method="post" class="space-y-4">
                 <div>
                     <label for="username" class="block text-sm font-medium text-gray-700">아이디</label>
                     <input type="text" id="username" name="username" required

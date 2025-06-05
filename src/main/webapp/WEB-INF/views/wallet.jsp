@@ -6,6 +6,8 @@
     <meta charset="UTF-8">
     <title>내 지갑</title>
     <link rel="stylesheet" href="/css/theme.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -113,23 +115,34 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            overflow: hidden;
         }
         th, td {
             padding: 12px;
             text-align: left;
             border-bottom: 1px solid var(--border-color);
-            color: var(--text-primary);
         }
         th {
-            background-color: var(--bg-secondary);
+            background-color: var(--bg-primary);
             font-weight: bold;
             color: var(--text-secondary);
         }
+        td {
+            color: var(--text-primary);
+        }
+        tr:hover {
+            background-color: var(--bg-hover);
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
         .type-deposit {
-            color: #2ecc71;
+            color: #2ecc71 !important;
         }
         .type-withdraw {
-            color: #e74c3c;
+            color: #e74c3c !important;
         }
         .status-tag {
             padding: 4px 8px;
@@ -138,15 +151,22 @@
             font-weight: bold;
         }
         .status-completed {
-            background-color: #d4edda;
-            color: #155724;
+            background-color: var(--bg-success);
+            color: var(--text-success);
         }
         .status-pending {
-            background-color: #fff3cd;
-            color: #856404;
+            background-color: var(--bg-warning);
+            color: var(--text-warning);
         }
         .user-info {
-            color: white;
+            color: var(--nav-text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .user-info a {
+            color: var(--nav-text);
+            text-decoration: none;
         }
         .form-label {
             color: var(--text-secondary);
@@ -164,6 +184,25 @@
         h1, h2 {
             color: var(--text-primary);
         }
+        .notification-icon {
+            position: relative;
+            color: var(--nav-text);
+            font-size: 20px;
+            cursor: pointer;
+            margin-right: 20px;
+        }
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: #e74c3c;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 12px;
+            min-width: 16px;
+            text-align: center;
+        }
     </style>
     <script src="/js/theme.js"></script>
 </head>
@@ -174,6 +213,10 @@
             <div class="nav-menu">
                 <a href="/wallet" class="active">지갑</a>
                 <a href="/chart">시세</a>
+                <a href="/notifications" class="notification-icon">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge" id="notification-count"></span>
+                </a>
             </div>
             <div class="user-info">
                 ${member.name}님 | <a href="/logout" style="color: white; text-decoration: none;">로그아웃</a>
@@ -221,10 +264,10 @@
             <h2>거래 내역</h2>
             <c:choose>
                 <c:when test="${empty transactions}">
-                    <div style="text-align: center; padding: 40px; background-color: #f8f9fa; border-radius: 8px; margin: 20px 0; border: 1px solid #dee2e6;">
+                    <div style="text-align: center; padding: 40px; background-color: var(--bg-secondary); border-radius: 8px; margin: 20px 0; border: 1px solid var(--border-color);">
                         <div style="margin-bottom: 15px; font-size: 24px;">📝</div>
-                        <p style="margin: 0; color: #6c757d; font-size: 16px;">아직 거래 내역이 없습니다.</p>
-                        <p style="margin: 10px 0 0 0; color: #adb5bd; font-size: 14px;">입금 또는 출금을 진행하시면 이곳에 거래 내역이 표시됩니다.</p>
+                        <p style="margin: 0; color: var(--text-primary); font-size: 16px;">아직 거래 내역이 없습니다.</p>
+                        <p style="margin: 10px 0 0 0; color: var(--text-secondary); font-size: 14px;">입금 또는 출금을 진행하시면 이곳에 거래 내역이 표시됩니다.</p>
                     </div>
                 </c:when>
                 <c:otherwise>
@@ -311,6 +354,25 @@
                     });
                 });
             }
+        });
+
+        // 읽지 않은 알림 개수를 가져오는 함수
+        function updateNotificationCount() {
+            $.get('/notifications/count', function(count) {
+                const badge = $('#notification-count');
+                if (count > 0) {
+                    badge.text(count).show();
+                } else {
+                    badge.hide();
+                }
+            });
+        }
+
+        // 페이지 로드 시 알림 개수 업데이트
+        $(document).ready(function() {
+            updateNotificationCount();
+            // 30초마다 알림 개수 업데이트
+            setInterval(updateNotificationCount, 30000);
         });
     </script>
 </body>

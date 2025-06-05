@@ -21,20 +21,56 @@ function toggleTheme() {
 }
 
 // 초기 테마 설정
-document.addEventListener('DOMContentLoaded', () => {
-    // 저장된 테마 또는 시스템 설정 확인
-    const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const theme = savedTheme || (prefersDark ? 'dark' : 'light');
-    
-    setTheme(theme);
+document.addEventListener('DOMContentLoaded', function() {
+    // 테마 토글 버튼 생성
+    const toggleButton = document.createElement('button');
+    toggleButton.className = 'theme-toggle';
+    toggleButton.innerHTML = `
+        <div class="toggle-track">
+            <div class="toggle-sun">☀️</div>
+            <div class="toggle-moon">🌙</div>
+            <div class="toggle-thumb"></div>
+        </div>
+    `;
 
-    // 테마 토글 버튼이 없으면 생성
-    if (!document.querySelector('.theme-toggle')) {
-        const toggleButton = document.createElement('button');
-        toggleButton.className = 'theme-toggle';
-        toggleButton.innerHTML = `<span id="themeIcon">${theme === 'dark' ? '☀️' : '🌙'}</span>`;
-        toggleButton.onclick = toggleTheme;
-        document.body.appendChild(toggleButton);
+    // 로그아웃 링크 찾기
+    const userInfo = document.querySelector('.user-info');
+    if (userInfo) {
+        // 로그아웃 링크 다음에 토글 버튼 추가
+        userInfo.appendChild(toggleButton);
     }
+
+    // 시스템 테마 감지
+    const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+
+    // 저장된 테마 불러오기
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    } else if (prefersDarkScheme.matches) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    }
+
+    // 테마 토글 이벤트
+    toggleButton.addEventListener('click', function() {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+
+        // 테마 변경 이벤트 발생
+        const event = new CustomEvent('themeChanged', {
+            detail: { theme: newTheme }
+        });
+        document.dispatchEvent(event);
+    });
+
+    // 시스템 테마 변경 감지
+    prefersDarkScheme.addListener((e) => {
+        if (!localStorage.getItem('theme')) {
+            const newTheme = e.matches ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', newTheme);
+        }
+    });
 }); 

@@ -27,6 +27,11 @@ public class MemberController {
         return "login";
     }
 
+    @GetMapping("/api/login")
+    public String redirectToLogin() {
+        return "redirect:/login";
+    }
+
     @PostMapping("/api/register")
     @ResponseBody
     public ResponseEntity<?> register(@RequestParam String username,

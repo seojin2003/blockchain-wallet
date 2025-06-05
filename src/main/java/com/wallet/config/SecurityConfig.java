@@ -49,7 +49,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .and()
             .formLogin()
                 .loginPage("/login")
-                .loginProcessingUrl("/api/login")
+                .loginProcessingUrl("/login")
                 .usernameParameter("username")
                 .passwordParameter("password")
                 .successHandler(successHandler())
@@ -68,7 +68,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .and()
             .and()
             .csrf()
-                .ignoringAntMatchers("/api/register", "/api/check-username", "/api/wallet/deposit", "/api/wallet/withdraw", "/api/wallet/create")
+                .ignoringAntMatchers("/api/register", "/api/check-username", "/api/wallet/deposit", "/api/wallet/withdraw", "/api/wallet/create", "/login")
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
     }
 

@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/css/theme.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="/js/theme.js"></script>
+    <script src="/js/notification.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -207,6 +208,8 @@
                         xhr.setRequestHeader('${_csrf.headerName}', token);
                     },
                     success: function(response) {
+                        // 입금 완료 알림 표시
+                        window.notificationManager.showDepositNotification(amount);
                         alert('입금이 완료되었습니다.');
                         window.location.href = '/wallet';
                     },
