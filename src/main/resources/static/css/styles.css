@@ -1,0 +1,108 @@
+/* 다크모드 변수 */
+:root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8f9fa;
+    --text-primary: #1a2b4d;
+    --text-secondary: #64748b;
+    --border-color: #e2e8f0;
+    --chart-line: #2563eb;
+    --chart-fill: rgba(37, 99, 235, 0.1);
+}
+
+[data-theme="dark"] {
+    --bg-primary: #1a2b4d;
+    --bg-secondary: #2c3e50;
+    --text-primary: #ffffff;
+    --text-secondary: #a0aec0;
+    --border-color: #34495e;
+    --chart-line: #3498db;
+    --chart-fill: rgba(52, 152, 219, 0.1);
+}
+
+/* 기본 스타일 */
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.navbar {
+    background-color: var(--bg-secondary) !important;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.card {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.card-body {
+    position: relative;
+}
+
+/* 가격 정보 스타일 */
+.price-info h5 {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.price-info .h3 {
+    color: var(--text-primary);
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.text-muted {
+    color: var(--text-secondary) !important;
+}
+
+/* 버튼 스타일 */
+.btn-outline-primary {
+    color: var(--chart-line);
+    border-color: var(--chart-line);
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary.active {
+    background-color: var(--chart-line);
+    border-color: var(--chart-line);
+    color: #ffffff;
+}
+
+/* 로딩 스피너 스타일 */
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* 알림 스타일 */
+.alert {
+    margin-bottom: 1rem;
+}
+
+/* 차트 컨테이너 스타일 */
+.chart-container {
+    position: relative;
+    height: 400px;
+    width: 100%;
+}
+
+/* 반응형 스타일 */
+@media (max-width: 768px) {
+    .price-info .h3 {
+        font-size: 1.25rem;
+    }
+    
+    .btn-group {
+        flex-wrap: wrap;
+    }
+    
+    .btn-group .btn {
+        flex: 1;
+        min-width: 80px;
+        margin-bottom: 0.5rem;
+    }
+} 
