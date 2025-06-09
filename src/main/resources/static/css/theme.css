@@ -5,9 +5,9 @@
     --text-primary: #212529;
     --text-secondary: #6c757d;
     --border-color: #dee2e6;
-    --nav-bg: #2c3e50;
+    --nav-bg: #1a2b4d;
     --nav-text: #ffffff;
-    --button-primary: #3498db;
+    --button-primary: #1a2b4d;
     --button-danger: #e74c3c;
     --button-secondary: #95a5a6;
     --card-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -23,25 +23,25 @@
 
 [data-theme="dark"] {
     /* Dark Mode Colors */
-    --bg-primary: #1a1a1a;
-    --bg-secondary: #2d2d2d;
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
     --text-primary: #ffffff;
-    --text-secondary: #a0aec0;
-    --border-color: #404040;
-    --nav-bg: #1a1a1a;
+    --text-secondary: #94a3b8;
+    --border-color: #334155;
+    --nav-bg: #0f172a;
     --nav-text: #ffffff;
-    --button-primary: #2980b9;
-    --button-danger: #c0392b;
-    --button-secondary: #7f8c8d;
-    --card-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    --alert-info-bg: #2a4365;
-    --alert-info-text: #ebf8ff;
-    --alert-info-border: #4299e1;
-    --bg-success: #276749;
-    --text-success: #c6f6d5;
-    --bg-warning: #744210;
-    --text-warning: #fefcbf;
-    --bg-hover: rgba(255,255,255,0.1);
+    --button-primary: #1a2b4d;
+    --button-danger: #dc2626;
+    --button-secondary: #475569;
+    --card-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    --alert-info-bg: #1e293b;
+    --alert-info-text: #93c5fd;
+    --alert-info-border: #3b82f6;
+    --bg-success: #064e3b;
+    --text-success: #6ee7b7;
+    --bg-warning: #78350f;
+    --text-warning: #fcd34d;
+    --bg-hover: rgba(255,255,255,0.05);
 }
 
 /* Theme Toggle Button */

@@ -8,6 +8,11 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/css/theme.css">
     <style>
+        :root {
+            --button-bg: var(--nav-bg);
+            --button-hover: #142339;
+        }
+        
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -38,15 +43,17 @@
         }
         .form-control {
             width: 100%;
-            padding: 0.5rem;
+            padding: 0.75rem;
             border: 1px solid var(--border-color);
             border-radius: 4px;
             background-color: var(--bg-secondary);
             color: var(--text-primary);
+            transition: all 0.3s ease;
         }
         .form-control:focus {
             outline: none;
-            border-color: #3498db;
+            border-color: var(--button-bg);
+            box-shadow: 0 0 0 2px rgba(44, 62, 80, 0.2);
         }
         .btn {
             width: 100%;
@@ -55,26 +62,36 @@
             border-radius: 4px;
             font-weight: bold;
             cursor: pointer;
-            transition: opacity 0.3s;
+            transition: all 0.3s ease;
         }
         .btn:hover {
             opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        .btn:active {
+            transform: translateY(0);
         }
         .btn-primary {
-            background-color: #3498db;
-            color: white;
+            background-color: var(--button-bg);
+            color: var(--nav-text);
+        }
+        .btn-primary:hover {
+            background-color: var(--button-hover);
         }
         .signup-link {
             text-align: center;
-            margin-top: 1rem;
+            margin-top: 1.5rem;
             color: var(--text-secondary);
         }
         .signup-link a {
-            color: #3498db;
+            color: var(--button-bg);
             text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s ease;
         }
         .signup-link a:hover {
-            text-decoration: underline;
+            color: var(--button-hover);
+            text-decoration: none;
         }
         .error-message {
             background-color: #fee2e2;

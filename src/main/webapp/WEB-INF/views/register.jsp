@@ -8,6 +8,11 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/css/theme.css">
     <style>
+        :root {
+            --button-bg: var(--nav-bg);
+            --button-hover: #142339;
+        }
+        
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -38,15 +43,17 @@
         }
         .form-control {
             width: 100%;
-            padding: 0.5rem;
+            padding: 0.75rem;
             border: 1px solid var(--border-color);
             border-radius: 4px;
             background-color: var(--bg-secondary);
             color: var(--text-primary);
+            transition: all 0.3s ease;
         }
         .form-control:focus {
             outline: none;
-            border-color: #3498db;
+            border-color: var(--button-bg);
+            box-shadow: 0 0 0 2px rgba(44, 62, 80, 0.2);
         }
         .btn {
             width: 100%;
@@ -55,35 +62,54 @@
             border-radius: 4px;
             font-weight: bold;
             cursor: pointer;
-            transition: opacity 0.3s;
+            transition: all 0.3s ease;
         }
         .btn:hover {
             opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        .btn:active {
+            transform: translateY(0);
         }
         .btn-primary {
-            background-color: #3498db;
-            color: white;
+            background-color: var(--button-bg);
+            color: var(--nav-text);
+        }
+        .btn-primary:hover {
+            background-color: var(--button-hover);
         }
         .btn-check {
-            background-color: #3498db;
-            color: white;
-            padding: 0.5rem 1rem;
+            background-color: var(--button-bg);
+            color: var(--nav-text);
+            padding: 0.75rem 1rem;
             border-radius: 4px;
             border: none;
             cursor: pointer;
             font-weight: bold;
+            transition: all 0.3s ease;
+            min-width: 90px;
+        }
+        .btn-check:hover {
+            background-color: var(--button-hover);
+            transform: translateY(-1px);
+        }
+        .btn-check:active {
+            transform: translateY(0);
         }
         .login-link {
             text-align: center;
-            margin-top: 1rem;
+            margin-top: 1.5rem;
             color: var(--text-secondary);
         }
         .login-link a {
-            color: #3498db;
+            color: var(--button-bg);
             text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s ease;
         }
         .login-link a:hover {
-            text-decoration: underline;
+            color: var(--button-hover);
+            text-decoration: none;
         }
         .message {
             margin-top: 0.5rem;
@@ -94,6 +120,13 @@
         }
         .message.error {
             color: #e74c3c;
+        }
+        .flex.gap-2 {
+            display: flex;
+            gap: 0.5rem;
+        }
+        #username {
+            flex: 1;
         }
     </style>
 </head>
