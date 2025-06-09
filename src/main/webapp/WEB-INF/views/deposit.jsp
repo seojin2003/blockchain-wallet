@@ -6,9 +6,11 @@
 <head>
     <meta charset="UTF-8">
     <title>입금하기</title>
-    <link rel="stylesheet" href="/css/theme.css">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/theme.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="/js/theme.js"></script>
+    <script src="/static/js/theme.js"></script>
     <script src="/js/notification.js"></script>
     <style>
         body {
@@ -27,9 +29,9 @@
             max-width: 1200px;
             margin: 0 auto;
             display: flex;
-            justify-content: space-between;
             align-items: center;
             padding: 0 20px;
+            gap: 40px;
         }
         .nav-logo {
             color: var(--nav-text);
@@ -46,12 +48,36 @@
             text-decoration: none;
             padding: 5px 10px;
             border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .nav-menu a i {
+            font-size: 16px;
         }
         .nav-menu a:hover {
             background-color: rgba(255,255,255,0.1);
         }
         .nav-menu a.active {
             background-color: rgba(255,255,255,0.2);
+        }
+        .notification-link {
+            position: relative;
+            display: inline-block;
+        }
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: #dc3545;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 12px;
+            min-width: 18px;
+            text-align: center;
+            font-weight: bold;
+            z-index: 1;
         }
         .container {
             max-width: 600px;
@@ -110,7 +136,24 @@
             opacity: 0.9;
         }
         .user-info {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
             color: white;
+            font-size: 14px;
+        }
+        .user-info button {
+            color: white;
+            text-decoration: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 0;
+        }
+        .user-info button:hover {
+            text-decoration: underline;
         }
         .alert {
             padding: 15px;
@@ -133,18 +176,25 @@
         <div class="nav-container">
             <a href="/wallet" class="nav-logo">블록체인 월렛</a>
             <div class="nav-menu">
-                <a href="/wallet"><i class="fas fa-wallet"></i> 지갑</a>
-                <a href="/chart"><i class="fas fa-chart-line"></i> 시세</a>
+                <a href="/wallet">
+                    <i class="fas fa-wallet"></i>
+                    지갑
+                </a>
+                <a href="/chart">
+                    <i class="fas fa-chart-line"></i>
+                    시세
+                </a>
                 <a href="/notifications" class="notification-link">
                     <i class="fas fa-bell"></i>
                     <span id="notification-count" class="notification-badge" style="display: none;">0</span>
                 </a>
             </div>
             <div class="user-info">
-                ${member.name}님 | 
+                <span><sec:authentication property="principal.username"/>님</span>
+                |
                 <form action="/logout" method="post" style="display: inline;">
                     <sec:csrfInput />
-                    <button type="submit" style="background: none; border: none; color: var(--nav-text); text-decoration: none; cursor: pointer;">로그아웃</button>
+                    <button type="submit">로그아웃</button>
                 </form>
             </div>
         </div>
@@ -188,7 +238,8 @@
     </div>
     <script>
         function updateNotificationCount() {
-            $.get('/notifications/count', function(count) {
+            $.get('/notifications/count', function(response) {
+                const count = response.count;
                 const badge = $('#notification-count');
                 if (count > 0) {
                     badge.text(count).show();
@@ -200,53 +251,52 @@
 
         $(document).ready(function() {
             updateNotificationCount();
-            // 30초마다 알림 개수 업데이트
-            setInterval(updateNotificationCount, 30000);
+        });
 
-            $('#depositForm').on('submit', function(e) {
-                e.preventDefault();
+        setInterval(updateNotificationCount, 30000);
+
+        $('#depositForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            const amount = parseFloat($('#amount').val());
+            const fromAddress = $('#fromAddress').val();
+
+            if (!fromAddress.startsWith('0x')) {
+                alert('올바른 이더리움 주소를 입력해주세요. (0x로 시작)');
+                return;
+            }
+
+            if (isNaN(amount) || amount <= 0) {
+                alert('올바른 입금 금액을 입력해주세요.');
+                return;
+            }
+
+            if (confirm('입금을 진행하시겠습니까?')) {
+                const token = $("input[name='${_csrf.parameterName}']").val();
                 
-                const amount = parseFloat($('#amount').val());
-                const fromAddress = $('#fromAddress').val();
-
-                if (!fromAddress.startsWith('0x')) {
-                    alert('올바른 이더리움 주소를 입력해주세요. (0x로 시작)');
-                    return;
-                }
-
-                if (isNaN(amount) || amount <= 0) {
-                    alert('올바른 입금 금액을 입력해주세요.');
-                    return;
-                }
-
-                if (confirm('입금을 진행하시겠습니까?')) {
-                    const token = $("input[name='${_csrf.parameterName}']").val();
-                    
-                    $.ajax({
-                        url: '/api/wallet/deposit',
-                        type: 'POST',
-                        data: {
-                            fromAddress: fromAddress,
-                            amount: amount,
-                            _csrf: token
-                        },
-                        success: function(response) {
-                            alert('입금이 완료되었습니다.');
-                            // 알림 개수 업데이트
-                            updateNotificationCount();
-                            window.location.href = '/wallet';
-                        },
-                        error: function(xhr) {
-                            try {
-                                const response = JSON.parse(xhr.responseText);
-                                alert(response.error || '입금 처리 중 오류가 발생했습니다.');
-                            } catch (e) {
-                                alert('입금 처리 중 오류가 발생했습니다.');
-                            }
+                $.ajax({
+                    url: '/api/wallet/deposit',
+                    type: 'POST',
+                    data: {
+                        fromAddress: fromAddress,
+                        amount: amount,
+                        _csrf: token
+                    },
+                    success: function(response) {
+                        alert('입금이 완료되었습니다.');
+                        updateNotificationCount();
+                        window.location.href = '/wallet';
+                    },
+                    error: function(xhr) {
+                        try {
+                            const response = JSON.parse(xhr.responseText);
+                            alert(response.error || '입금 처리 중 오류가 발생했습니다.');
+                        } catch (e) {
+                            alert('입금 처리 중 오류가 발생했습니다.');
                         }
-                    });
-                }
-            });
+                    }
+                });
+            }
         });
     </script>
 </body>

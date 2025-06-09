@@ -219,14 +219,16 @@
             border-radius: 50%;
             padding: 2px 6px;
             font-size: 12px;
-            min-width: 16px;
+            min-width: 18px;
             text-align: center;
+            font-weight: bold;
+            z-index: 1;
         }
         .notification-link {
             position: relative;
+            display: inline-block;
         }
-        
-        .notification-badge {
+        .notification-count {
             position: absolute;
             top: -8px;
             right: -8px;
@@ -235,8 +237,11 @@
             border-radius: 50%;
             padding: 2px 6px;
             font-size: 12px;
-            min-width: 18px;
+            min-width: 20px;
             text-align: center;
+        }
+        .notification-icon {
+            position: relative;
         }
     </style>
 </head>
@@ -245,18 +250,25 @@
         <div class="nav-container">
             <a href="/wallet" class="nav-logo">블록체인 월렛</a>
             <div class="nav-menu">
-                <a href="/wallet" class="active"><i class="fas fa-wallet"></i> 지갑</a>
-                <a href="/chart"><i class="fas fa-chart-line"></i> 시세</a>
+                <a href="/wallet" class="active">
+                    <i class="fas fa-wallet"></i>
+                    지갑
+                </a>
+                <a href="/chart">
+                    <i class="fas fa-chart-line"></i>
+                    시세
+                </a>
                 <a href="/notifications" class="notification-link">
                     <i class="fas fa-bell"></i>
                     <span id="notification-count" class="notification-badge" style="display: none;">0</span>
                 </a>
             </div>
             <div class="user-info">
-                ${member.name}님 | 
+                <span><sec:authentication property="principal.username"/>님</span>
+                |
                 <form action="/logout" method="post" style="display: inline;">
                     <sec:csrfInput />
-                    <button type="submit" style="background: none; border: none; color: var(--nav-text); text-decoration: none; cursor: pointer;">로그아웃</button>
+                    <button type="submit">로그아웃</button>
                 </form>
             </div>
         </div>
@@ -364,6 +376,7 @@
             </c:choose>
         </div>
     </div>
+    <script src="/js/notification.js"></script>
     <script>
         // 알림 개수 업데이트 함수
         function updateNotificationCount() {
@@ -378,13 +391,13 @@
             });
         }
 
-        // 30초마다 알림 개수 업데이트
-        setInterval(updateNotificationCount, 30000);
-
-        // 초기 알림 개수 업데이트
+        // 페이지 로드 시 알림 개수 업데이트
         $(document).ready(function() {
             updateNotificationCount();
         });
+
+        // 30초마다 알림 개수 업데이트
+        setInterval(updateNotificationCount, 30000);
 
         document.addEventListener('DOMContentLoaded', function() {
             const createWalletForm = document.querySelector('form[action="/api/wallet/create"]');
