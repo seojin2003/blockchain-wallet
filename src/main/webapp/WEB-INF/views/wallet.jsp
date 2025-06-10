@@ -607,13 +607,16 @@
             document.getElementById('txHash').textContent = hash;
             document.getElementById('txFrom').textContent = from || '정보 없음';
             document.getElementById('txTo').textContent = to || '정보 없음';
-            document.getElementById('txGasPrice').textContent = gasPrice || '정보 없음';
-            document.getElementById('txGasUsed').textContent = gasUsed || '정보 없음';
+            document.getElementById('txGasPrice').textContent = gasPrice ? (gasPrice + ' Gwei') : '정보 없음';
+            document.getElementById('txGasUsed').textContent = gasUsed ? (gasUsed + ' Gas') : '정보 없음';
             
             // 거래 수수료 계산 (gasPrice * gasUsed)
             let fee = '정보 없음';
             if (gasPrice && gasUsed) {
-                fee = (parseFloat(gasPrice) * parseFloat(gasUsed) / 1e18).toFixed(8) + ' ETH';
+                // Gwei를 ETH로 변환 (1 ETH = 10^9 Gwei)
+                const feeInGwei = BigInt(gasPrice) * BigInt(gasUsed);
+                const feeInEth = Number(feeInGwei) / 1000000000;
+                fee = feeInEth.toFixed(8) + ' ETH';
             }
             document.getElementById('txFee').textContent = fee;
             
@@ -679,12 +682,16 @@
                     <div class="detail-value hash" id="txTo"></div>
                 </div>
                 <div class="detail-group">
-                    <div class="detail-label">가스 정보</div>
-                    <div class="detail-value">
-                        <div>가스 가격: <span id="txGasPrice"></span> Wei</div>
-                        <div>가스 사용량: <span id="txGasUsed"></span></div>
-                        <div>거래 수수료: <span id="txFee"></span> ETH</div>
-                    </div>
+                    <div class="detail-label">가스 가격</div>
+                    <div class="detail-value" id="txGasPrice"></div>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-label">가스 사용량</div>
+                    <div class="detail-value" id="txGasUsed"></div>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-label">거래 수수료</div>
+                    <div class="detail-value" id="txFee"></div>
                 </div>
             </div>
         </div>

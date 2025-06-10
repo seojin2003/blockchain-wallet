@@ -16,9 +16,11 @@ import org.web3j.utils.Numeric;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.security.SecureRandom;
+import java.util.Random;
 import java.util.UUID;
 
 @Service
@@ -32,6 +34,50 @@ public class WalletService {
     private final MemberService memberService;
     private final NotificationService notificationService;
     private final SecureRandom secureRandom = new SecureRandom();
+    private final Random random = new Random();
+
+    // 기본 가스 사용량 상수
+    private static final BigInteger BASE_GAS_LIMIT = BigInteger.valueOf(21000); // 기본 전송
+    private static final BigInteger TOKEN_GAS_LIMIT = BigInteger.valueOf(50000); // 토큰 전송
+    
+    // 가스 가격 범위 (Gwei)
+    private static final BigInteger MIN_GAS_PRICE = BigInteger.valueOf(30); // 30 Gwei
+    private static final BigInteger MAX_GAS_PRICE = BigInteger.valueOf(100); // 100 Gwei
+
+    // 네트워크 혼잡도에 따른 가스 가격 계산
+    private String calculateGasPrice() {
+        // 현재 시간을 기반으로 네트워크 혼잡도 시뮬레이션
+        int hour = LocalDateTime.now().getHour();
+        
+        // 피크 시간대 (9-18시)는 더 높은 가스 가격
+        boolean isPeakHour = hour >= 9 && hour <= 18;
+        
+        // 기본 가스 가격 범위 내에서 랜덤 값 생성
+        BigInteger basePrice = isPeakHour ? 
+            BigInteger.valueOf(50) : BigInteger.valueOf(30);
+        
+        // 약간의 변동성 추가 (±10 Gwei)
+        int variation = random.nextInt(21) - 10;
+        BigInteger finalPrice = basePrice.add(BigInteger.valueOf(variation));
+        
+        // 최소/최대 범위 내로 조정
+        finalPrice = finalPrice.max(MIN_GAS_PRICE).min(MAX_GAS_PRICE);
+        
+        return finalPrice.toString();
+    }
+
+    // 가스 사용량 계산
+    private String calculateGasUsed(String type) {
+        BigInteger gasLimit = "DEPOSIT".equals(type) || "WITHDRAW".equals(type) ?
+            BASE_GAS_LIMIT : TOKEN_GAS_LIMIT;
+            
+        // 실제 사용량은 한도의 90-100% 사이
+        double percentage = 0.9 + (random.nextDouble() * 0.1);
+        BigInteger gasUsed = gasLimit.multiply(BigInteger.valueOf((long)(percentage * 100)))
+            .divide(BigInteger.valueOf(100));
+            
+        return gasUsed.toString();
+    }
 
     @Transactional
     public void createWallet(Member member) throws Exception {
@@ -48,7 +94,6 @@ public class WalletService {
         try {
             log.info("초기 코인 발행 시작 - 회원: {}, 금액: {}", member.getUsername(), amount);
 
-            // 잔액 초기화 체크
             if (member.getBalance() == null) {
                 log.debug("잔액이 null이어서 0으로 초기화합니다.");
                 member.setBalance(BigDecimal.ZERO);
@@ -57,6 +102,10 @@ public class WalletService {
             // 새로운 잔액 계산
             BigDecimal newBalance = member.getBalance().add(amount);
             log.debug("새로운 잔액 계산: {} + {} = {}", member.getBalance(), amount, newBalance);
+
+            // 가스 정보 계산
+            String gasPrice = calculateGasPrice();
+            String gasUsed = calculateGasUsed("DEPOSIT");
 
             // 트랜잭션 생성
             log.debug("트랜잭션 객체 생성 시작");
@@ -69,14 +118,14 @@ public class WalletService {
                 .status("COMPLETED")
                 .transactionHash(generateTransactionHash())
                 .createdAt(LocalDateTime.now())
-                .balanceAfter(newBalance)  // 새로 계산된 잔액 사용
+                .balanceAfter(newBalance)
+                .gasPrice(gasPrice)
+                .gasUsed(gasUsed)
                 .build();
             log.debug("트랜잭션 객체 생성 완료: {}", transaction);
 
             // 트랜잭션 저장
-            log.debug("트랜잭션 저장 시작");
             transaction = transactionRepository.save(transaction);
-            log.debug("트랜잭션 저장 완료: {}", transaction);
 
             // 멤버 잔액 업데이트
             member.setBalance(newBalance);
@@ -110,6 +159,10 @@ public class WalletService {
             BigDecimal newBalance = member.getBalance().add(amount);
             log.info("새로운 잔액 계산: {} + {} = {}", member.getBalance(), amount, newBalance);
 
+            // 가스 정보 계산
+            String gasPrice = calculateGasPrice();
+            String gasUsed = calculateGasUsed("DEPOSIT");
+
             // 트랜잭션 생성
             Transaction transaction = Transaction.builder()
                 .member(member)
@@ -120,7 +173,9 @@ public class WalletService {
                 .status("COMPLETED")
                 .transactionHash(generateTransactionHash())
                 .createdAt(LocalDateTime.now())
-                .balanceAfter(newBalance)  // 새로 계산된 잔액 사용
+                .balanceAfter(newBalance)
+                .gasPrice(gasPrice)
+                .gasUsed(gasUsed)
                 .build();
 
             // 멤버 잔액 업데이트
@@ -149,6 +204,10 @@ public class WalletService {
         // 출금자의 새로운 잔액 계산
         BigDecimal newBalance = member.getBalance().subtract(amount);
 
+        // 가스 정보 계산
+        String gasPrice = calculateGasPrice();
+        String gasUsed = calculateGasUsed("WITHDRAW");
+
         // 출금 트랜잭션 생성
         Transaction withdrawTransaction = Transaction.builder()
                 .member(member)
@@ -159,7 +218,9 @@ public class WalletService {
                 .status("COMPLETED")
                 .transactionHash(generateDummyTransactionHash())
                 .createdAt(LocalDateTime.now())
-                .balanceAfter(newBalance)  // 새로 계산된 잔액 사용
+                .balanceAfter(newBalance)
+                .gasPrice(gasPrice)
+                .gasUsed(gasUsed)
                 .build();
 
         // 출금자의 잔액 업데이트
@@ -183,6 +244,10 @@ public class WalletService {
             receiver.setBalance(receiverNewBalance);
             memberService.save(receiver);
 
+            // 수신자의 가스 정보 계산
+            String receiverGasPrice = calculateGasPrice();
+            String receiverGasUsed = calculateGasUsed("DEPOSIT");
+
             Transaction depositTransaction = Transaction.builder()
                     .member(receiver)
                     .type("DEPOSIT")
@@ -192,7 +257,9 @@ public class WalletService {
                     .status("COMPLETED")
                     .transactionHash(generateDummyTransactionHash())
                     .createdAt(LocalDateTime.now())
-                    .balanceAfter(receiverNewBalance)  // 수신자의 새로운 잔액 사용
+                    .balanceAfter(receiverNewBalance)
+                    .gasPrice(receiverGasPrice)
+                    .gasUsed(receiverGasUsed)
                     .build();
             
             depositTransaction = transactionRepository.save(depositTransaction);
