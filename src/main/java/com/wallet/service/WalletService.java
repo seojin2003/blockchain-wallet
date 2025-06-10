@@ -44,6 +44,17 @@ public class WalletService {
     private static final BigInteger MIN_GAS_PRICE = BigInteger.valueOf(30); // 30 Gwei
     private static final BigInteger MAX_GAS_PRICE = BigInteger.valueOf(100); // 100 Gwei
 
+    // 블록 번호 범위 설정
+    private static final long MIN_BLOCK_NUMBER = 18000000; // 실제 이더리움 메인넷의 현재 블록 번호 근처
+    private static final long MAX_BLOCK_NUMBER = 18999999;
+
+    // 블록 번호 생성
+    private String generateBlockNumber() {
+        // MIN_BLOCK_NUMBER와 MAX_BLOCK_NUMBER 사이의 랜덤한 블록 번호 생성
+        long blockNumber = MIN_BLOCK_NUMBER + random.nextInt((int)(MAX_BLOCK_NUMBER - MIN_BLOCK_NUMBER));
+        return String.valueOf(blockNumber);
+    }
+
     // 네트워크 혼잡도에 따른 가스 가격 계산
     private String calculateGasPrice() {
         // 현재 시간을 기반으로 네트워크 혼잡도 시뮬레이션
@@ -132,6 +143,7 @@ public class WalletService {
                 .balanceAfter(newBalance)
                 .gasPrice(gasPrice)
                 .gasUsed(gasUsed)
+                .blockNumber(generateBlockNumber())
                 .build();
             log.debug("트랜잭션 객체 생성 완료: {}", transaction);
 
@@ -187,6 +199,7 @@ public class WalletService {
                 .balanceAfter(newBalance)
                 .gasPrice(gasPrice)
                 .gasUsed(gasUsed)
+                .blockNumber(generateBlockNumber())
                 .build();
 
             // 멤버 잔액 업데이트
@@ -237,6 +250,7 @@ public class WalletService {
                 .balanceAfter(newBalance)
                 .gasPrice(gasPrice)
                 .gasUsed(gasUsed)
+                .blockNumber(generateBlockNumber())
                 .build();
 
         // 출금자의 잔액 업데이트
@@ -268,11 +282,12 @@ public class WalletService {
                     .fromAddress(member.getWalletAddress())
                     .toAddress(toAddress)
                     .status("COMPLETED")
-                    .transactionHash(depositTransactionHash)  // 입금용 트랜잭션 해시 사용
+                    .transactionHash(depositTransactionHash)
                     .createdAt(LocalDateTime.now())
                     .balanceAfter(receiverNewBalance)
-                    .gasPrice(gasPrice)  // 동일한 가스 가격 사용
-                    .gasUsed(gasUsed)    // 동일한 가스 사용량 사용
+                    .gasPrice(gasPrice)
+                    .gasUsed(gasUsed)
+                    .blockNumber(generateBlockNumber())
                     .build();
             
             depositTransaction = transactionRepository.save(depositTransaction);
