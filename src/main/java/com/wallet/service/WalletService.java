@@ -68,8 +68,19 @@ public class WalletService {
 
     // 가스 사용량 계산
     private String calculateGasUsed(String type) {
-        BigInteger gasLimit = "DEPOSIT".equals(type) || "WITHDRAW".equals(type) ?
-            BASE_GAS_LIMIT : TOKEN_GAS_LIMIT;
+        BigInteger gasLimit;
+        
+        // 거래 유형에 따른 가스 한도 설정
+        switch (type) {
+            case "TRANSFER":  // 송금 (입금/출금)
+                gasLimit = BASE_GAS_LIMIT;
+                break;
+            case "TOKEN":     // 토큰 거래
+                gasLimit = TOKEN_GAS_LIMIT;
+                break;
+            default:
+                gasLimit = BASE_GAS_LIMIT;
+        }
             
         // 실제 사용량은 한도의 90-100% 사이
         double percentage = 0.9 + (random.nextDouble() * 0.1);
@@ -204,9 +215,9 @@ public class WalletService {
         // 출금자의 새로운 잔액 계산
         BigDecimal newBalance = member.getBalance().subtract(amount);
 
-        // 가스 정보 계산
+        // 가스 정보 계산 - 하나의 거래에 대해 동일한 가스 정보 사용
         String gasPrice = calculateGasPrice();
-        String gasUsed = calculateGasUsed("WITHDRAW");
+        String gasUsed = calculateGasUsed("TRANSFER"); // TRANSFER로 변경하여 일관성 유지
 
         // 출금 트랜잭션 생성
         Transaction withdrawTransaction = Transaction.builder()
@@ -244,10 +255,7 @@ public class WalletService {
             receiver.setBalance(receiverNewBalance);
             memberService.save(receiver);
 
-            // 수신자의 가스 정보 계산
-            String receiverGasPrice = calculateGasPrice();
-            String receiverGasUsed = calculateGasUsed("DEPOSIT");
-
+            // 동일한 거래의 입금 트랜잭션 생성 - 같은 가스 정보 사용
             Transaction depositTransaction = Transaction.builder()
                     .member(receiver)
                     .type("DEPOSIT")
@@ -258,8 +266,8 @@ public class WalletService {
                     .transactionHash(generateDummyTransactionHash())
                     .createdAt(LocalDateTime.now())
                     .balanceAfter(receiverNewBalance)
-                    .gasPrice(receiverGasPrice)
-                    .gasUsed(receiverGasUsed)
+                    .gasPrice(gasPrice)  // 동일한 가스 가격 사용
+                    .gasUsed(gasUsed)    // 동일한 가스 사용량 사용
                     .build();
             
             depositTransaction = transactionRepository.save(depositTransaction);
