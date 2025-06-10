@@ -376,8 +376,11 @@
                     
                     console.log('요청 데이터:', requestData);
                     
+                    // 관리자의 초기 코인 발행인 경우
+                    const apiUrl = '<c:choose><c:when test="${member.admin && !member.hasInitializedCoin}">/api/wallet/initial-deposit</c:when><c:otherwise>/api/wallet/deposit</c:otherwise></c:choose>';
+                    
                     $.ajax({
-                        url: '/api/wallet/deposit',
+                        url: apiUrl,
                         type: 'POST',
                         contentType: 'application/x-www-form-urlencoded',
                         data: requestData,

@@ -77,11 +77,11 @@ public class WalletController {
         return "deposit";
     }
 
-    @PostMapping("/api/wallet/deposit")
+    @PostMapping("/api/wallet/initial-deposit")
     @ResponseBody
-    public ResponseEntity<?> deposit(@AuthenticationPrincipal User user,
-                                   @RequestParam String fromAddress,
-                                   @RequestParam BigDecimal amount) {
+    public ResponseEntity<?> initialDeposit(@AuthenticationPrincipal User user,
+                                          @RequestParam String fromAddress,
+                                          @RequestParam BigDecimal amount) {
         try {
             if (user == null) {
                 throw new RuntimeException("로그인이 필요합니다.");
@@ -113,6 +113,38 @@ public class WalletController {
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("코인 발행 중 오류 발생", e);
+            Map<String, String> response = new HashMap<>();
+            response.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @PostMapping("/api/wallet/deposit")
+    @ResponseBody
+    public ResponseEntity<?> deposit(@AuthenticationPrincipal User user,
+                                   @RequestParam String fromAddress,
+                                   @RequestParam BigDecimal amount) {
+        try {
+            if (user == null) {
+                throw new RuntimeException("로그인이 필요합니다.");
+            }
+
+            Member member = memberService.findByUsername(user.getUsername());
+
+            // 금액 유효성 검사
+            if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new RuntimeException("유효한 금액을 입력해주세요.");
+            }
+
+            // 일반 입금 처리
+            Transaction transaction = walletService.deposit(member, fromAddress, amount);
+
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "입금이 완료되었습니다.");
+            response.put("transactionHash", transaction.getTransactionHash());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("입금 중 오류 발생", e);
             Map<String, String> response = new HashMap<>();
             response.put("error", e.getMessage());
             return ResponseEntity.badRequest().body(response);
