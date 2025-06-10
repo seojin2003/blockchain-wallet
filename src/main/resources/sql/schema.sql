@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     to_address VARCHAR(42) NOT NULL,
     status VARCHAR(20) NOT NULL,
     balance_after DECIMAL(40,18),
-    transaction_hash VARCHAR(66) NOT NULL,
+    transaction_hash VARCHAR(100) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     gas_price VARCHAR(255),
     gas_used VARCHAR(255),

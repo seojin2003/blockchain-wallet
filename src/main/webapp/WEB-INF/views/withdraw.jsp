@@ -237,8 +237,8 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="address">목적지 주소</label>
-                    <input type="text" class="form-control" id="address" name="address" required>
+                    <label class="form-label" for="toAddress">목적지 주소</label>
+                    <input type="text" class="form-control" id="toAddress" name="toAddress" required>
                     <div class="form-text">ETH를 받을 지갑 주소를 입력해주세요.</div>
                 </div>
 
@@ -277,9 +277,9 @@
                 e.preventDefault();
                 
                 const amount = parseFloat($('#amount').val());
-                const address = $('#address').val();
+                const toAddress = $('#toAddress').val();
 
-                if (!address.startsWith('0x')) {
+                if (!toAddress.startsWith('0x')) {
                     alert('올바른 이더리움 주소를 입력해주세요. (0x로 시작)');
                     return;
                 }
@@ -291,28 +291,38 @@
 
                 if (confirm('출금을 진행하시겠습니까?')) {
                     const token = $("input[name='${_csrf.parameterName}']").val();
+                    const requestData = {
+                        toAddress: $('#toAddress').val(),
+                        amount: amount,
+                        _csrf: token
+                    };
+                    
+                    console.log('요청 데이터:', requestData);
                     
                     $.ajax({
                         url: '/api/wallet/withdraw',
                         type: 'POST',
-                        data: {
-                            toAddress: address,
-                            amount: amount,
-                            _csrf: token
-                        },
+                        contentType: 'application/x-www-form-urlencoded',
+                        data: requestData,
                         success: function(response) {
+                            console.log('성공 응답:', response);
                             alert('출금이 완료되었습니다.');
-                            // 알림 개수 업데이트
-                            updateNotificationCount();
                             window.location.href = '/wallet';
                         },
-                        error: function(xhr) {
+                        error: function(xhr, status, error) {
+                            console.error('에러 상태:', status);
+                            console.error('에러 메시지:', error);
+                            console.error('서버 응답:', xhr.responseText);
+                            
+                            let errorMsg;
                             try {
-                                const response = JSON.parse(xhr.responseText);
-                                alert(response.error || '출금 처리 중 오류가 발생했습니다.');
+                                const errorResponse = JSON.parse(xhr.responseText);
+                                errorMsg = errorResponse.error || '오류가 발생했습니다.';
                             } catch (e) {
-                                alert('출금 처리 중 오류가 발생했습니다.');
+                                errorMsg = '서버와의 통신 중 오류가 발생했습니다.';
                             }
+                            
+                            alert(errorMsg);
                         }
                     });
                 }

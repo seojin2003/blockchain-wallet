@@ -219,6 +219,11 @@ public class WalletService {
         String gasPrice = calculateGasPrice();
         String gasUsed = calculateGasUsed("TRANSFER"); // TRANSFER로 변경하여 일관성 유지
 
+        // 하나의 거래에 대해 동일한 트랜잭션 해시 생성
+        String baseTransactionHash = generateDummyTransactionHash();
+        String withdrawTransactionHash = baseTransactionHash + "_WITHDRAW";
+        String depositTransactionHash = baseTransactionHash + "_DEPOSIT";
+
         // 출금 트랜잭션 생성
         Transaction withdrawTransaction = Transaction.builder()
                 .member(member)
@@ -227,7 +232,7 @@ public class WalletService {
                 .fromAddress(member.getWalletAddress())
                 .toAddress(toAddress)
                 .status("COMPLETED")
-                .transactionHash(generateDummyTransactionHash())
+                .transactionHash(withdrawTransactionHash)
                 .createdAt(LocalDateTime.now())
                 .balanceAfter(newBalance)
                 .gasPrice(gasPrice)
@@ -255,7 +260,7 @@ public class WalletService {
             receiver.setBalance(receiverNewBalance);
             memberService.save(receiver);
 
-            // 동일한 거래의 입금 트랜잭션 생성 - 같은 가스 정보 사용
+            // 동일한 거래의 입금 트랜잭션 생성 - 같은 가스 정보와 트랜잭션 해시 사용
             Transaction depositTransaction = Transaction.builder()
                     .member(receiver)
                     .type("DEPOSIT")
@@ -263,7 +268,7 @@ public class WalletService {
                     .fromAddress(member.getWalletAddress())
                     .toAddress(toAddress)
                     .status("COMPLETED")
-                    .transactionHash(generateDummyTransactionHash())
+                    .transactionHash(depositTransactionHash)  // 입금용 트랜잭션 해시 사용
                     .createdAt(LocalDateTime.now())
                     .balanceAfter(receiverNewBalance)
                     .gasPrice(gasPrice)  // 동일한 가스 가격 사용
