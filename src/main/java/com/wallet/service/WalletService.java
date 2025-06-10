@@ -150,12 +150,10 @@ public class WalletService {
             // 트랜잭션 저장
             transaction = transactionRepository.save(transaction);
 
-            // 멤버 잔액 업데이트
+            // 멤버 잔액 업데이트 및 코인 발행 완료 표시
             member.setBalance(newBalance);
-            memberService.save(member);
-            
-            // 코인 발행 완료 표시
             member.setHasInitializedCoin(true);
+            memberService.save(member);
             
             // 알림 생성
             notificationService.createTransactionNotification(member, amount.toPlainString(), NotificationType.DEPOSIT);
