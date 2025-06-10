@@ -23,6 +23,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.transaction.annotation.Transactional;
+import javax.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Controller
 @RequiredArgsConstructor
 public class WalletController {
@@ -30,6 +35,7 @@ public class WalletController {
     private final WalletService walletService;
     private final MemberService memberService;
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+    private static final Logger log = LoggerFactory.getLogger(WalletController.class);
 
     @GetMapping("/wallet")
     public String wallet(@AuthenticationPrincipal User user, Model model) {
@@ -62,6 +68,12 @@ public class WalletController {
     public String depositForm(@AuthenticationPrincipal User user, Model model) throws Exception {
         Member member = memberService.findByUsername(user.getUsername());
         model.addAttribute("member", member);
+        
+        // 관리자가 아닌 경우 지갑 주소만 표시
+        if (!member.isAdmin()) {
+            model.addAttribute("readOnly", true);
+        }
+        
         return "deposit";
     }
 
@@ -76,13 +88,31 @@ public class WalletController {
             }
 
             Member member = memberService.findByUsername(user.getUsername());
-            Transaction transaction = walletService.deposit(member, fromAddress, amount);
+            
+            // 관리자 체크
+            if (!member.isAdmin()) {
+                throw new RuntimeException("관리자만 코인을 발행할 수 있습니다.");
+            }
+
+            // 이미 코인을 발행했는지 체크
+            if (member.isHasInitializedCoin()) {
+                throw new RuntimeException("코인은 최초 1회만 발행할 수 있습니다.");
+            }
+
+            // 금액 유효성 검사
+            if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new RuntimeException("유효한 금액을 입력해주세요.");
+            }
+
+            // 코인 발행 처리를 서비스에 위임
+            Transaction transaction = walletService.processInitialDeposit(member, fromAddress, amount);
 
             Map<String, String> response = new HashMap<>();
-            response.put("message", "입금이 완료되었습니다.");
+            response.put("message", "초기 코인 발행이 완료되었습니다.");
             response.put("transactionHash", transaction.getTransactionHash());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            log.error("코인 발행 중 오류 발생", e);
             Map<String, String> response = new HashMap<>();
             response.put("error", e.getMessage());
             return ResponseEntity.badRequest().body(response);

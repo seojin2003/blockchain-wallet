@@ -243,6 +243,152 @@
         .notification-icon {
             position: relative;
         }
+        .copy-button {
+            background: none;
+            border: none;
+            color: #3498db;
+            cursor: pointer;
+            padding: 5px;
+            margin-left: 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .copy-button:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+        .copy-alert {
+            display: inline-block;
+            margin-left: 10px;
+            color: #2ecc71;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .copy-alert.show {
+            opacity: 1;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            position: relative;
+            background-color: var(--bg-secondary);
+            margin: 5% auto;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-close {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+            background-color: var(--bg-primary);
+            z-index: 1;
+        }
+        
+        .modal-close:hover {
+            color: var(--text-primary);
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        .transaction-detail {
+            margin-top: 20px;
+        }
+        
+        .detail-group {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .detail-group:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .detail-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .detail-value {
+            color: var(--text-primary);
+            font-size: 15px;
+            word-break: break-all;
+            line-height: 1.5;
+        }
+        
+        .detail-value.hash {
+            font-family: monospace;
+            font-size: 13px;
+            background-color: var(--bg-primary);
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        .detail-status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .detail-status.completed {
+            background-color: var(--bg-success);
+            color: var(--text-success);
+        }
+        
+        .detail-status.pending {
+            background-color: var(--bg-warning);
+            color: var(--text-warning);
+        }
+        
+        .modal h2 {
+            margin: 0 0 20px 0;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .transaction-item {
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .transaction-item:hover {
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 <body>
@@ -294,7 +440,13 @@
                                 </form>
                             </c:when>
                             <c:otherwise>
-                                ${member.walletAddress}
+                                <span id="wallet-address">${member.walletAddress}</span>
+                                <button onclick="copyToClipboard('wallet-address')" class="copy-button">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <span class="copy-alert" id="copy-alert">
+                                    <i class="fas fa-check"></i> 복사됨
+                                </span>
                             </c:otherwise>
                         </c:choose>
                     </span>
@@ -305,8 +457,8 @@
                 </div>
                 <div class="button-group">
                     <c:if test="${not empty member.walletAddress}">
-                        <a href="/deposit" class="button button-deposit">입금하기</a>
-                        <a href="/withdraw" class="button button-withdraw">출금하기</a>
+                        <a href="/deposit" class="button button-deposit">입금</a>
+                        <a href="/withdraw" class="button button-withdraw">출금</a>
                     </c:if>
                 </div>
             </div>
@@ -333,7 +485,7 @@
                         </thead>
                         <tbody>
                             <c:forEach items="${transactions}" var="tx">
-                                <tr>
+                                <tr class="transaction-item" onclick="showTransactionDetails('${tx.transactionHash}', '${tx.type}', '${tx.amount}', '${tx.status}', '${tx.createdAt}', '${tx.fromAddress}', '${tx.toAddress}', '${tx.gasPrice}', '${tx.gasUsed}', '${tx.blockNumber}', '${tx.balanceAfter}')">
                                     <td>${tx.createdAt}</td>
                                     <td>
                                         <c:choose>
@@ -376,6 +528,7 @@
             </c:choose>
         </div>
     </div>
+    
     <script src="/js/notification.js"></script>
     <script>
         // 알림 개수 업데이트 함수
@@ -427,6 +580,114 @@
                 });
             }
         });
+
+        function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId).textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const alert = document.getElementById('copy-alert');
+                alert.classList.add('show');
+                setTimeout(() => {
+                    alert.classList.remove('show');
+                }, 2000);
+            }).catch(err => {
+                console.error('클립보드 복사 실패:', err);
+                alert('클립보드 복사에 실패했습니다.');
+            });
+        }
+
+        function showTransactionDetails(hash, type, amount, status, time, from, to, gasPrice, gasUsed, blockNumber, balanceAfter) {
+            // 모달 내용 설정
+            document.getElementById('txType').textContent = type == 'DEPOSIT' ? '입금' : '출금';
+            document.getElementById('txStatus').textContent = status;
+            document.getElementById('txStatus').className = `detail-status ${status.toLowerCase()}`;
+            document.getElementById('txAmount').textContent = (type == 'DEPOSIT' ? '+' : '-') + amount + ' ETH';
+            document.getElementById('txBalance').textContent = balanceAfter + ' ETH';
+            document.getElementById('txTime').textContent = time;
+            document.getElementById('txBlock').textContent = blockNumber || '정보 없음';
+            document.getElementById('txHash').textContent = hash;
+            document.getElementById('txFrom').textContent = from || '정보 없음';
+            document.getElementById('txTo').textContent = to || '정보 없음';
+            document.getElementById('txGasPrice').textContent = gasPrice || '정보 없음';
+            document.getElementById('txGasUsed').textContent = gasUsed || '정보 없음';
+            
+            // 거래 수수료 계산 (gasPrice * gasUsed)
+            let fee = '정보 없음';
+            if (gasPrice && gasUsed) {
+                fee = (parseFloat(gasPrice) * parseFloat(gasUsed) / 1e18).toFixed(8) + ' ETH';
+            }
+            document.getElementById('txFee').textContent = fee;
+            
+            // 모달 표시
+            document.getElementById('transactionModal').style.display = 'block';
+        }
+        
+        function closeTransactionModal() {
+            document.getElementById('transactionModal').style.display = 'none';
+        }
+        
+        // 모달 외부 클릭 시 닫기
+        window.onclick = function(event) {
+            const modal = document.getElementById('transactionModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
     </script>
+
+    <!-- 거래 상세 정보 모달 -->
+    <div id="transactionModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeTransactionModal()">&times;</span>
+            <h2>거래 상세 정보</h2>
+            <div class="transaction-detail">
+                <div class="detail-group">
+                    <div class="detail-label">거래 유형</div>
+                    <div class="detail-value" id="txType"></div>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-label">거래 상태</div>
+                    <div class="detail-value">
+                        <span class="detail-status" id="txStatus"></span>
+                    </div>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-label">거래 금액</div>
+                    <div class="detail-value" id="txAmount"></div>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-label">거래 후 잔액</div>
+                    <div class="detail-value" id="txBalance"></div>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-label">거래 시간</div>
+                    <div class="detail-value" id="txTime"></div>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-label">블록 번호</div>
+                    <div class="detail-value" id="txBlock"></div>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-label">거래 해시</div>
+                    <div class="detail-value hash" id="txHash"></div>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-label">보내는 주소</div>
+                    <div class="detail-value hash" id="txFrom"></div>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-label">받는 주소</div>
+                    <div class="detail-value hash" id="txTo"></div>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-label">가스 정보</div>
+                    <div class="detail-value">
+                        <div>가스 가격: <span id="txGasPrice"></span> Wei</div>
+                        <div>가스 사용량: <span id="txGasUsed"></span></div>
+                        <div>거래 수수료: <span id="txFee"></span> ETH</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html> 

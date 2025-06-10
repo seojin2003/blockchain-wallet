@@ -7,7 +7,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -22,10 +24,15 @@ public class MemberService {
             throw new RuntimeException("이미 사용 중인 아이디입니다.");
         }
 
+        // 첫 번째 가입자를 관리자로 설정
+        boolean isFirstMember = memberRepository.count() == 0;
+
         Member member = Member.builder()
                 .username(username)
                 .password(passwordEncoder.encode(password))
                 .name(name)
+                .isAdmin(isFirstMember)
+                .balance(BigDecimal.ZERO)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -37,6 +44,11 @@ public class MemberService {
     public Member findByUsername(String username) {
         return memberRepository.findByUsername(username)
             .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + username));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Member> findByWalletAddress(String walletAddress) {
+        return memberRepository.findByWalletAddress(walletAddress);
     }
 
     @Transactional(readOnly = true)

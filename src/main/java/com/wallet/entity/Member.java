@@ -48,8 +48,14 @@ public class Member {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     
-    @Column(precision = 20, scale = 8)
+    @Column(precision = 40, scale = 18, nullable = false)
     private BigDecimal balance = BigDecimal.ZERO;
+    
+    @Column(name = "is_admin")
+    private boolean isAdmin = false;
+    
+    @Column(name = "has_initialized_coin")
+    private boolean hasInitializedCoin = false;
     
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
     private List<Transaction> transactions = new ArrayList<>();
@@ -69,5 +75,8 @@ public class Member {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+        if (balance == null) {
+            balance = BigDecimal.ZERO;
+        }
     }
 } 

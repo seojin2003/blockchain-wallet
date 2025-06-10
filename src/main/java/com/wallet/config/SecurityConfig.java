@@ -74,30 +74,29 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .authenticationManager(authenticationManager)
-            .userDetailsService(userDetailsService)
             .csrf()
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 .and()
             .authorizeRequests()
-                .antMatchers("/css/**", "/js/**", "/images/**", "/static/**").permitAll()
+                .antMatchers("/css/**", "/js/**", "/images/**", "/static/**", "/webjars/**").permitAll()
                 .antMatchers("/", "/login", "/register", "/signup", "/api/register", "/api/check-username").permitAll()
+                .antMatchers("/api/**").authenticated()
                 .anyRequest().authenticated()
-            .and()
+                .and()
             .formLogin()
                 .loginPage("/login")
                 .loginProcessingUrl("/login")
-                .successHandler(successHandler())
-                .failureHandler(failureHandler())
+                .defaultSuccessUrl("/wallet")
+                .failureUrl("/login?error=true")
                 .permitAll()
-            .and()
+                .and()
             .logout()
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/login")
                 .invalidateHttpSession(true)
-                .deleteCookies("JSESSIONID", "XSRF-TOKEN")
+                .deleteCookies("JSESSIONID")
                 .permitAll();
 
         return http.build();

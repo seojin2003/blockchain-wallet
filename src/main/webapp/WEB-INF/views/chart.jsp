@@ -214,10 +214,11 @@
                 </a>
             </div>
             <div class="user-info">
-                ${member.name}님 | 
+                <span><sec:authentication property="principal.username"/>님</span>
+                |
                 <form action="/logout" method="post" style="display: inline;">
                     <sec:csrfInput />
-                    <button type="submit" style="background: none; border: none; color: var(--nav-text); text-decoration: none; cursor: pointer;">로그아웃</button>
+                    <button type="submit">로그아웃</button>
                 </form>
             </div>
         </div>

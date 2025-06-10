@@ -5,7 +5,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>출금하기</title>
+    <title>출금</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/theme.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -214,7 +214,7 @@
 
     <div class="container">
         <div class="card">
-            <h1>출금하기</h1>
+            <h1>출금</h1>
             
             <div class="alert alert-info">
                 출금하실 금액과 목적지 주소를 입력해주세요.

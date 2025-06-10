@@ -5,7 +5,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>입금하기</title>
+    <title>입금</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/theme.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -61,80 +61,6 @@
         .nav-menu a.active {
             background-color: rgba(255,255,255,0.2);
         }
-        .notification-link {
-            position: relative;
-            display: inline-block;
-        }
-        .notification-badge {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background-color: #dc3545;
-            color: white;
-            border-radius: 50%;
-            padding: 2px 6px;
-            font-size: 12px;
-            min-width: 18px;
-            text-align: center;
-            font-weight: bold;
-            z-index: 1;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .card {
-            background-color: var(--bg-secondary);
-            border-radius: 8px;
-            box-shadow: var(--card-shadow);
-            padding: 20px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        .form-label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: var(--text-secondary);
-        }
-        .form-control {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            box-sizing: border-box;
-            background-color: var(--bg-secondary);
-            color: var(--text-primary);
-        }
-        .form-text {
-            margin-top: 5px;
-            font-size: 14px;
-            color: var(--text-secondary);
-        }
-        .button {
-            padding: 10px 20px;
-            border-radius: 4px;
-            border: none;
-            font-weight: bold;
-            cursor: pointer;
-            text-decoration: none;
-            text-align: center;
-            display: inline-block;
-        }
-        .button-deposit {
-            background-color: #28a745;
-            color: white;
-        }
-        .button-cancel {
-            background-color: #6c757d;
-            color: white;
-            margin-left: 10px;
-        }
-        .button:hover {
-            opacity: 0.9;
-        }
         .user-info {
             margin-left: auto;
             display: flex;
@@ -155,6 +81,54 @@
         .user-info button:hover {
             text-decoration: underline;
         }
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: #e74c3c;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 12px;
+            min-width: 18px;
+            text-align: center;
+            font-weight: bold;
+            z-index: 1;
+        }
+        .notification-link {
+            position: relative;
+            display: inline-block;
+        }
+        .notification-icon {
+            position: relative;
+            color: var(--nav-text);
+            font-size: 20px;
+            cursor: pointer;
+            margin-right: 20px;
+        }
+        .notification-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: #e74c3c;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 12px;
+            min-width: 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+        .card {
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            padding: 20px;
+        }
         .alert {
             padding: 15px;
             margin-bottom: 20px;
@@ -163,11 +137,84 @@
         }
         .alert-info {
             background-color: var(--alert-info-bg);
-            color: var(--alert-info-text);
             border-color: var(--alert-info-border);
+            color: var(--alert-info-text);
         }
-        h1 {
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
             color: var(--text-primary);
+        }
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: var(--input-bg);
+            color: var(--text-primary);
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .btn-deposit {
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-deposit:hover {
+            background-color: var(--primary-color-hover);
+        }
+        .btn-cancel {
+            padding: 10px 20px;
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: 500;
+            text-align: center;
+            transition: background-color 0.2s;
+        }
+        .btn-cancel:hover {
+            background-color: #1a2632;
+        }
+        .copy-button {
+            background: none;
+            border: none;
+            color: #3498db;
+            cursor: pointer;
+            padding: 5px;
+            margin-left: 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .copy-button:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+        .copy-alert {
+            display: inline-block;
+            margin-left: 10px;
+            color: #2ecc71;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .copy-alert.show {
+            opacity: 1;
         }
     </style>
 </head>
@@ -202,40 +249,62 @@
 
     <div class="container">
         <div class="card">
-            <h1>입금하기</h1>
+            <h1>입금</h1>
             
-            <div class="alert alert-info">
-                입금하실 금액과 출발 주소를 입력해주세요.
-            </div>
-
-            <form id="depositForm">
-                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
-                
-                <div class="form-group">
-                    <label class="form-label">내 지갑 주소</label>
-                    <input type="text" class="form-control" value="${member.walletAddress}" readonly>
-                    <div class="form-text">이 주소로 입금됩니다.</div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="fromAddress">출발 주소</label>
-                    <input type="text" class="form-control" id="fromAddress" name="fromAddress" required>
-                    <div class="form-text">ETH를 보내는 지갑 주소를 입력해주세요.</div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="amount">입금 금액</label>
-                    <input type="number" class="form-control" id="amount" name="amount" step="0.00000001" required>
-                    <div class="form-text">입금하실 ETH 수량을 입력해주세요.</div>
-                </div>
-
-                <div>
-                    <button type="submit" class="button button-deposit">입금하기</button>
-                    <a href="/wallet" class="button button-cancel">취소</a>
-                </div>
-            </form>
+            <c:choose>
+                <c:when test="${member.admin}">
+                    <c:choose>
+                        <c:when test="${!member.hasInitializedCoin}">
+                            <div class="alert alert-info">
+                                <strong>초기 코인 발행</strong>
+                                <p class="mb-0">* 코인 발행은 최초 1회만 가능합니다. 신중하게 입력해주세요.</p>
+                            </div>
+                            <form id="depositForm">
+                                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
+                                <div class="form-group">
+                                    <label for="fromAddress">발행 주소:</label>
+                                    <input type="text" class="form-control" id="fromAddress" name="fromAddress" value="${member.walletAddress}" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label for="amount">발행할 총 코인 수량:</label>
+                                    <input type="number" class="form-control" id="amount" name="amount" step="0.00000001" required>
+                                </div>
+                                <div class="button-group">
+                                    <button type="submit" class="btn-cancel">코인 발행하기</button>
+                                    <a href="/wallet" class="btn-cancel">취소</a>
+                                </div>
+                            </form>
+                        </c:when>
+                        <c:otherwise>
+                            <div class="alert alert-info">
+                                <strong>코인 발행 완료</strong>
+                                <p>이미 초기 코인이 발행되었습니다. 추가 발행은 불가능합니다.</p>
+                                <p>내 지갑 주소: ${member.walletAddress}</p>
+                            </div>
+                            <div class="button-group">
+                                <a href="/wallet" class="btn-cancel">지갑으로 돌아가기</a>
+                            </div>
+                        </c:otherwise>
+                    </c:choose>
+                </c:when>
+                <c:otherwise>
+                    <div class="alert alert-info">
+                        <p>내 지갑 주소: <span id="wallet-address">${member.walletAddress}</span>
+                        <button onclick="copyToClipboard('wallet-address')" class="copy-button">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <span class="copy-alert" id="copy-alert">
+                            <i class="fas fa-check"></i> 복사됨
+                        </span></p>
+                    </div>
+                    <div class="button-group">
+                        <a href="/wallet" class="btn-cancel">지갑으로 돌아가기</a>
+                    </div>
+                </c:otherwise>
+            </c:choose>
         </div>
     </div>
+
     <script>
         function updateNotificationCount() {
             $.get('/notifications/count', function(response) {
@@ -251,53 +320,105 @@
 
         $(document).ready(function() {
             updateNotificationCount();
-        });
-
-        setInterval(updateNotificationCount, 30000);
-
-        $('#depositForm').on('submit', function(e) {
-            e.preventDefault();
             
-            const amount = parseFloat($('#amount').val());
-            const fromAddress = $('#fromAddress').val();
+            // CSRF 토큰 설정
+            var token = $("input[name='${_csrf.parameterName}']").val();
+            var header = "${_csrf.headerName}";
+            
+            // AJAX 기본 설정
+            $.ajaxSetup({
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader(header, token);
+                }
+            });
 
-            if (!fromAddress.startsWith('0x')) {
-                alert('올바른 이더리움 주소를 입력해주세요. (0x로 시작)');
-                return;
-            }
-
-            if (isNaN(amount) || amount <= 0) {
-                alert('올바른 입금 금액을 입력해주세요.');
-                return;
-            }
-
-            if (confirm('입금을 진행하시겠습니까?')) {
-                const token = $("input[name='${_csrf.parameterName}']").val();
+            $('#depositForm').submit(function(e) {
+                e.preventDefault();
                 
-                $.ajax({
-                    url: '/api/wallet/deposit',
-                    type: 'POST',
-                    data: {
+                const fromAddress = $('#fromAddress').val();
+                const amount = $('#amount').val();
+                
+                // 입력값 검증
+                if (!fromAddress || fromAddress.trim() === '') {
+                    alert('발행 주소를 입력해주세요.');
+                    return;
+                }
+                
+                if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+                    alert('유효한 금액을 입력해주세요.');
+                    return;
+                }
+                
+                // 최대값 검증 (40자리, 소수점 18자리까지 허용)
+                const MAX_DIGITS = 40;
+                const MAX_DECIMALS = 18;
+                
+                const parts = amount.toString().split('.');
+                const integerPart = parts[0];
+                const decimalPart = parts[1] || '';
+                
+                if (integerPart.length + decimalPart.length > MAX_DIGITS) {
+                    alert('숫자가 너무 큽니다. 최대 ' + MAX_DIGITS + '자리까지 입력 가능합니다.');
+                    return;
+                }
+                
+                if (decimalPart.length > MAX_DECIMALS) {
+                    alert('소수점 이하 ' + MAX_DECIMALS + '자리까지만 입력 가능합니다.');
+                    return;
+                }
+                
+                if (confirm('코인을 발행하시겠습니까? 이 작업은 취소할 수 없습니다.')) {
+                    const requestData = {
                         fromAddress: fromAddress,
                         amount: amount,
-                        _csrf: token
-                    },
-                    success: function(response) {
-                        alert('입금이 완료되었습니다.');
-                        updateNotificationCount();
-                        window.location.href = '/wallet';
-                    },
-                    error: function(xhr) {
-                        try {
-                            const response = JSON.parse(xhr.responseText);
-                            alert(response.error || '입금 처리 중 오류가 발생했습니다.');
-                        } catch (e) {
-                            alert('입금 처리 중 오류가 발생했습니다.');
+                        _csrf: $('input[name="_csrf"]').val()
+                    };
+                    
+                    console.log('요청 데이터:', requestData);
+                    
+                    $.ajax({
+                        url: '/api/wallet/deposit',
+                        type: 'POST',
+                        contentType: 'application/x-www-form-urlencoded',
+                        data: requestData,
+                        success: function(response) {
+                            console.log('성공 응답:', response);
+                            alert(response.message);
+                            window.location.href = '/wallet';
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('에러 상태:', status);
+                            console.error('에러 메시지:', error);
+                            console.error('서버 응답:', xhr.responseText);
+                            
+                            let errorMsg;
+                            try {
+                                const errorResponse = JSON.parse(xhr.responseText);
+                                errorMsg = errorResponse.error || '오류가 발생했습니다.';
+                            } catch (e) {
+                                errorMsg = '서버와의 통신 중 오류가 발생했습니다.';
+                            }
+                            
+                            alert(errorMsg);
                         }
-                    }
-                });
-            }
+                    });
+                }
+            });
         });
+
+        function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId).textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const alert = document.getElementById('copy-alert');
+                alert.classList.add('show');
+                setTimeout(() => {
+                    alert.classList.remove('show');
+                }, 2000);
+            }).catch(err => {
+                console.error('클립보드 복사 실패:', err);
+                alert('클립보드 복사에 실패했습니다.');
+            });
+        }
     </script>
 </body>
 </html> 
