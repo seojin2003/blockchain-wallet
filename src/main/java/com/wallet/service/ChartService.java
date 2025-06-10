@@ -74,8 +74,38 @@ public class ChartService {
             BigDecimal changeRate = new BigDecimal(ticker.get("signed_change_rate").toString())
                 .multiply(new BigDecimal("100"));
 
+            // 기간에 따른 캔들 타입과 개수 설정
+            String candleType;
+            int candleCount;
+            
+            switch (period) {
+                case "1D":
+                    candleType = "minutes/15";  // 15분봉
+                    candleCount = 96;           // 24시간 = 96개
+                    break;
+                case "1W":
+                    candleType = "days";        // 일봉
+                    candleCount = 7;            // 1주일 = 7개
+                    break;
+                case "1M":
+                    candleType = "days";        // 일봉
+                    candleCount = 30;           // 1개월 = 30개
+                    break;
+                case "3M":
+                    candleType = "weeks";       // 주봉
+                    candleCount = 12;           // 3개월 = 12주
+                    break;
+                case "1Y":
+                    candleType = "months";      // 월봉
+                    candleCount = 12;           // 1년 = 12개월
+                    break;
+                default:
+                    candleType = "minutes/15";  // 기본값: 15분봉
+                    candleCount = 96;           // 24시간
+            }
+
             // 캔들 데이터 가져오기
-            String candlesUrl = UPBIT_API_URL + "/candles/minutes/15?market=KRW-ETH&count=96"; // 15분봉 96개 (24시간)
+            String candlesUrl = UPBIT_API_URL + "/candles/" + candleType + "?market=KRW-ETH&count=" + candleCount;
             
             log.info("캔들 API 호출: {}", candlesUrl);
             ResponseEntity<List> candlesResponse = restTemplate.getForEntity(candlesUrl, List.class);
@@ -100,12 +130,29 @@ public class ChartService {
             List<BigDecimal> prices = new ArrayList<>();
             
             // 캔들 데이터를 시간순으로 정렬 (과거 -> 현재)
-            Collections.reverse(candleData);
+            Collections.reverse(candleData); // 현재->과거 순서를 과거->현재 순서로 변경
             
             for (Map<String, Object> candle : candleData) {
-                // 시간 포맷팅 (시간:분 형식)
+                // 시간 포맷팅
                 String timestamp = candle.get("candle_date_time_kst").toString();
-                String label = timestamp.substring(11, 16);
+                String label;
+                
+                switch (period) {
+                    case "1D":
+                        label = timestamp.substring(11, 16);  // HH:mm
+                        break;
+                    case "1W":
+                    case "1M":
+                        label = timestamp.substring(5, 10);   // MM-dd
+                        break;
+                    case "3M":
+                    case "1Y":
+                        label = timestamp.substring(0, 10);   // YYYY-MM-dd
+                        break;
+                    default:
+                        label = timestamp.substring(11, 16);  // HH:mm
+                }
+                
                 labels.add(label);
                 
                 // 현재가 사용

@@ -13,6 +13,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="/js/theme.js"></script>
     <script src="/js/notification.js"></script>
+    <script src="/js/chart.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -68,17 +69,16 @@
             padding: 20px;
         }
         .card {
-            background-color: var(--bg-secondary);
-            border-radius: 8px;
-            box-shadow: var(--card-shadow);
-            padding: 20px;
-            margin-bottom: 20px;
+            background-color: var(--bg-primary);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
-        .info-section {
-            margin-bottom: 30px;
-            padding: 20px;
-            background-color: #f8f9fa;
-            border-radius: 8px;
+        h1 {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--text-primary);
+            margin-bottom: 24px;
         }
         .chart-container {
             position: relative;
@@ -176,10 +176,6 @@
         .price-premium::before {
             content: "프리미엄 ";
         }
-        h1, h2 {
-            color: var(--text-primary);
-            margin-bottom: 20px;
-        }
         .notification-link {
             position: relative;
             display: inline-block;
@@ -268,276 +264,35 @@
     </div>
 
     <script>
-        let chart = null;
-        let lastUpdateTime = 0;
-        const UPDATE_INTERVAL = 3000; // 3초
-        let currentPeriod = '1D'; // 현재 선택된 기간
-
-        // 차트 초기화 함수
-        function initializeChart() {
-            const ctx = document.getElementById('priceChart').getContext('2d');
-            const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
-            
-            chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'ETH/KRW',
-                        data: [],
-                        borderColor: isDarkMode ? '#3498db' : '#2563eb',
-                        backgroundColor: isDarkMode ? 'rgba(52, 152, 219, 0.1)' : 'rgba(37, 99, 235, 0.1)',
-                        borderWidth: 2.5,
-                        pointRadius: 0,
-                        pointHoverRadius: 6,
-                        pointHoverBackgroundColor: isDarkMode ? '#3498db' : '#2563eb',
-                        pointHoverBorderColor: isDarkMode ? '#3498db' : '#2563eb',
-                        pointHoverBorderWidth: 2,
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    animation: {
-                        duration: 300
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false,
-                            backgroundColor: isDarkMode ? '#2c3e50' : 'rgba(255, 255, 255, 0.95)',
-                            titleColor: isDarkMode ? '#ffffff' : '#1e293b',
-                            bodyColor: isDarkMode ? '#ffffff' : '#1e293b',
-                            borderColor: isDarkMode ? '#34495e' : '#e2e8f0',
-                            borderWidth: 1,
-                            padding: 12,
-                            cornerRadius: 8,
-                            titleFont: {
-                                size: 14,
-                                weight: 'bold'
-                            },
-                            bodyFont: {
-                                size: 13
-                            },
-                            displayColors: false,
-                            callbacks: {
-                                label: function(context) {
-                                    let value = context.raw;
-                                    return new Intl.NumberFormat('ko-KR', {
-                                        style: 'currency',
-                                        currency: 'KRW',
-                                        maximumFractionDigits: 0
-                                    }).format(value);
-                                }
-                            }
+        $(document).ready(function() {
+            // 알림 개수 업데이트
+            function updateNotificationCount() {
+                $.ajax({
+                    url: '/notifications/count',
+                    method: 'GET',
+                    success: function(response) {
+                        const badge = $('#notification-count');
+                        if (response.count > 0) {
+                            badge.text(response.count).show();
+                        } else {
+                            badge.hide();
                         }
                     },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: true,
-                                color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
-                                drawBorder: false
-                            },
-                            ticks: {
-                                maxRotation: 0,
-                                minRotation: 0,
-                                autoSkip: true,
-                                maxTicksLimit: 12,
-                                padding: 8,
-                                font: {
-                                    size: 11,
-                                    weight: '500'
-                                },
-                                color: isDarkMode ? '#a0aec0' : '#64748b'
-                            }
-                        },
-                        y: {
-                            grid: {
-                                color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
-                                drawBorder: false,
-                                lineWidth: 1
-                            },
-                            ticks: {
-                                callback: function(value) {
-                                    return new Intl.NumberFormat('ko-KR', {
-                                        style: 'currency',
-                                        currency: 'KRW',
-                                        maximumFractionDigits: 0
-                                    }).format(value);
-                                },
-                                padding: 8,
-                                font: {
-                                    size: 11,
-                                    weight: '500'
-                                },
-                                color: isDarkMode ? '#a0aec0' : '#64748b'
-                            }
-                        }
-                    },
-                    interaction: {
-                        mode: 'nearest',
-                        axis: 'x',
-                        intersect: false
-                    }
-                }
-            });
-        }
-
-        // 가격 변화 색상 설정 함수
-        function setPriceChangeColor(element, value) {
-            if (value > 0) {
-                element.className = 'price-change price-up';
-            } else if (value < 0) {
-                element.className = 'price-change price-down';
-            } else {
-                element.className = 'price-change';
-            }
-        }
-
-        // 차트 데이터 업데이트 함수
-        async function updateChart(period, force = false) {
-            currentPeriod = period;
-            const now = Date.now();
-            if (!force && now - lastUpdateTime < UPDATE_INTERVAL) {
-                return;
-            }
-            lastUpdateTime = now;
-
-            try {
-                console.log('차트 업데이트 요청 - 기간:', period);
-                const response = await fetch(`/api/chart/price?period=${period}&t=${now}`, {
-                    headers: {
-                        'Cache-Control': 'no-cache',
-                        'Pragma': 'no-cache'
+                    error: function(xhr, status, error) {
+                        console.error('알림 개수 업데이트 실패:', error);
                     }
                 });
-
-                if (!response.ok) {
-                    if (response.status === 401) {
-                        window.location.href = '/login';
-                        throw new Error('로그인이 필요합니다.');
-                    }
-                    throw new Error('API 호출 중 오류가 발생했습니다.');
-                }
-
-                const data = await response.json();
-                console.log('받은 데이터:', data);
-                
-                if (!chart) {
-                    initializeChart();
-                }
-
-                // 차트 데이터 업데이트
-                chart.data.labels = data.labels;
-                chart.data.datasets[0].data = data.prices;
-
-                // Y축 범위 설정
-                const prices = data.prices.map(p => parseFloat(p));
-                const minPrice = Math.min(...prices);
-                const maxPrice = Math.max(...prices);
-                const padding = (maxPrice - minPrice) * 0.1;
-                
-                chart.options.scales.y.min = Math.floor(minPrice - padding);
-                chart.options.scales.y.max = Math.ceil(maxPrice + padding);
-                
-                // 차트 업데이트
-                chart.update();
-
-                // 가격 정보 업데이트
-                document.getElementById('currentPrice').textContent = data.currentPrice;
-                document.getElementById('globalPrice').textContent = data.globalPrice;
-                document.getElementById('highPrice').textContent = data.highPrice;
-                document.getElementById('lowPrice').textContent = data.lowPrice;
-                document.getElementById('volume').textContent = data.volume;
-
-                const priceChange = document.getElementById('priceChange');
-                const changeValue = parseFloat(data.priceChange);
-                priceChange.textContent = (changeValue >= 0 ? '+' : '') + changeValue.toFixed(2) + '%';
-                setPriceChangeColor(priceChange, changeValue);
-
-                const premium = document.getElementById('premium');
-                const premiumValue = parseFloat(data.premium);
-                premium.textContent = (premiumValue >= 0 ? '+' : '') + premiumValue.toFixed(2) + '%';
-                setPriceChangeColor(premium, premiumValue);
-
-                console.log('차트 업데이트 완료 - 기간:', period);
-
-            } catch (error) {
-                console.error('Error:', error);
             }
-        }
 
-        // 시간 필터 버튼 이벤트
-        document.querySelectorAll('.time-button').forEach(button => {
-            button.addEventListener('click', async function() {
-                // 이전 업데이트 타이머 제거
-                if (window.updateTimer) {
-                    clearInterval(window.updateTimer);
-                }
-                
-                document.querySelectorAll('.time-button').forEach(btn => btn.classList.remove('active'));
-                this.classList.add('active');
-                
-                // 차트 업데이트 전에 로딩 표시
-                if (chart) {
-                    chart.data.datasets[0].data = [];
-                    chart.update('none');
-                }
-                
-                await updateChart(this.dataset.period, true);
-                
-                // 새로운 업데이트 타이머 설정
-                window.updateTimer = setInterval(() => {
-                    updateChart(this.dataset.period);
-                }, UPDATE_INTERVAL);
-            });
-        });
-
-        function updateNotificationCount() {
-            $.ajax({
-                url: '/notifications/count',
-                method: 'GET',
-                success: function(response) {
-                    const badge = $('#notification-count');
-                    if (response.count > 0) {
-                        badge.text(response.count).show();
-                    } else {
-                        badge.hide();
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('알림 개수 업데이트 실패:', error);
-                }
-            });
-        }
-
-        $(document).ready(function() {
             // 초기 알림 개수 업데이트
             updateNotificationCount();
             
             // 30초마다 알림 개수 업데이트
             setInterval(updateNotificationCount, 30000);
 
-            // 차트 초기화 및 업데이트
-            initializeChart();
-            updateChart('1D', true);
-            
-            // 차트 자동 업데이트 타이머 설정
-            window.updateTimer = setInterval(() => {
-                updateChart('1D');
-            }, UPDATE_INTERVAL);
-        });
-
-        // 페이지 언로드 시 타이머 정리
-        window.addEventListener('beforeunload', function() {
-            if (window.updateTimer) {
-                clearInterval(window.updateTimer);
+            // ChartManager 초기화
+            if (window.ChartManager) {
+                ChartManager.init();
             }
         });
     </script>

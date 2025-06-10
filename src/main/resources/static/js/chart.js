@@ -210,12 +210,9 @@
             // 데이터 포인트 수 줄이기
             const skipPoints = Math.ceil(data.labels.length / 50); // 최대 50개의 포인트만 표시
             
-            // 데이터 역순 정렬 및 필터링
-            const reversedLabels = [...data.labels].reverse();
-            const reversedPrices = [...data.prices].reverse();
-            
-            const filteredLabels = reversedLabels.filter((_, i) => i % skipPoints === 0);
-            const filteredPrices = reversedPrices.filter((_, i) => i % skipPoints === 0);
+            // 데이터 필터링 (역순 정렬 제거)
+            const filteredLabels = data.labels.filter((_, i) => i % skipPoints === 0);
+            const filteredPrices = data.prices.filter((_, i) => i % skipPoints === 0);
 
             this.chart.data.labels = filteredLabels;
             this.chart.data.datasets[0].data = filteredPrices;
