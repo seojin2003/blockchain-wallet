@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
@@ -168,7 +169,7 @@ public class ChartService {
             result.put("currentPrice", formatKoreanWon(currentPrice));
             result.put("highPrice", formatKoreanWon(highPrice));
             result.put("lowPrice", formatKoreanWon(lowPrice));
-            result.put("priceChange", changeRate.setScale(2, BigDecimal.ROUND_HALF_UP));
+            result.put("priceChange", changeRate.setScale(2, RoundingMode.HALF_UP));
             result.put("volume", formatVolume(volume));
             result.put("globalPrice", formatKoreanWon(currentPrice));
             result.put("premium", BigDecimal.ZERO);
@@ -199,11 +200,11 @@ public class ChartService {
 
     private String formatKoreanWon(BigDecimal value) {
         if (value.compareTo(new BigDecimal("100000000000")) >= 0) { // 1000억 이상
-            return koreanWonFormat.format(value.divide(new BigDecimal("100000000"), 1, BigDecimal.ROUND_HALF_UP)) + "억원";
+            return koreanWonFormat.format(value.divide(new BigDecimal("100000000"), 1, RoundingMode.HALF_UP)) + "억원";
         } else if (value.compareTo(new BigDecimal("100000000")) >= 0) { // 1억 이상
-            return koreanWonFormat.format(value.divide(new BigDecimal("100000000"), 1, BigDecimal.ROUND_HALF_UP)) + "억원";
+            return koreanWonFormat.format(value.divide(new BigDecimal("100000000"), 1, RoundingMode.HALF_UP)) + "억원";
         } else if (value.compareTo(new BigDecimal("10000")) >= 0) { // 1만 이상
-            return koreanWonFormat.format(value.divide(new BigDecimal("10000"), 1, BigDecimal.ROUND_HALF_UP)) + "만원";
+            return koreanWonFormat.format(value.divide(new BigDecimal("10000"), 1, RoundingMode.HALF_UP)) + "만원";
         } else {
             return koreanWonFormat.format(value) + "원";
         }
@@ -211,11 +212,11 @@ public class ChartService {
 
     private String formatVolume(BigDecimal value) {
         if (value.compareTo(new BigDecimal("1000000000000")) >= 0) { // 1조 이상
-            return koreanWonFormat.format(value.divide(new BigDecimal("1000000000000"), 1, BigDecimal.ROUND_HALF_UP)) + "조원";
+            return koreanWonFormat.format(value.divide(new BigDecimal("1000000000000"), 1, RoundingMode.HALF_UP)) + "조원";
         } else if (value.compareTo(new BigDecimal("100000000")) >= 0) { // 1억 이상
-            return koreanWonFormat.format(value.divide(new BigDecimal("100000000"), 1, BigDecimal.ROUND_HALF_UP)) + "억원";
+            return koreanWonFormat.format(value.divide(new BigDecimal("100000000"), 1, RoundingMode.HALF_UP)) + "억원";
         } else {
-            return koreanWonFormat.format(value.divide(new BigDecimal("10000"), 1, BigDecimal.ROUND_HALF_UP)) + "만원";
+            return koreanWonFormat.format(value.divide(new BigDecimal("10000"), 1, RoundingMode.HALF_UP)) + "만원";
         }
     }
     

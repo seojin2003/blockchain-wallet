@@ -44,6 +44,31 @@
     --bg-hover: rgba(255,255,255,0.05);
 }
 
+/* 테마 전환 최적화 */
+html {
+    /* 초기 배경색 설정 */
+    background-color: var(--bg-primary);
+}
+
+body {
+    /* 배경색 전환 효과 제거 */
+    background-color: var(--bg-primary) !important;
+    /* 색상 전환 효과 최적화 */
+    transition: color 0.2s ease;
+}
+
+/* 전환 효과가 필요한 요소들만 선택적으로 적용 */
+.card,
+.nav,
+.button,
+.form-control,
+.alert {
+    transition: 
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
 /* Theme Toggle Button */
 .toggle {
     --width: 50px;

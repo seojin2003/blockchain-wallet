@@ -1,3 +1,11 @@
+// 초기 테마 설정을 즉시 실행
+(function() {
+    const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    const savedTheme = localStorage.getItem('theme');
+    const theme = savedTheme || (prefersDarkScheme.matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', theme);
+})();
+
 // 테마 설정 함수
 function setTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
@@ -31,7 +39,7 @@ function toggleTheme() {
     setTheme(newTheme);
 }
 
-// 초기 테마 설정
+// DOM 로드 후 테마 컨트롤러 설정
 document.addEventListener('DOMContentLoaded', function() {
     // 테마 토글 버튼 생성
     const toggleLabel = document.createElement('label');
@@ -48,13 +56,11 @@ document.addEventListener('DOMContentLoaded', function() {
         userInfo.appendChild(toggleLabel);
     }
 
-    // 시스템 테마 감지
-    const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-
     // 저장된 테마 불러오기
     const savedTheme = localStorage.getItem('theme');
-    const theme = savedTheme || (prefersDarkScheme.matches ? 'dark' : 'light');
-    setTheme(theme);
+    if (savedTheme) {
+        setTheme(savedTheme);
+    }
 
     // 테마 토글 이벤트
     const themeToggle = document.querySelector('.theme-controller');
@@ -66,6 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 시스템 테마 변경 감지
+    const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
     prefersDarkScheme.addListener((e) => {
         if (!localStorage.getItem('theme')) {
             const newTheme = e.matches ? 'dark' : 'light';

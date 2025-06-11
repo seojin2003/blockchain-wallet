@@ -6,11 +6,11 @@
 <head>
     <meta charset="UTF-8">
     <title>지갑</title>
+    <script src="/static/js/theme.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/theme.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="/static/js/theme.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
