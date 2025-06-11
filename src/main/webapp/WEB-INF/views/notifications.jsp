@@ -47,7 +47,7 @@
             border: none;
             cursor: pointer;
             font-size: 14px;
-            transition: opacity 0.2s;
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
             gap: 6px;
@@ -83,13 +83,13 @@
             gap: 15px;
             position: relative;
             border-left: 4px solid transparent;
-            transition: all 0.2s ease;
-            opacity: 0.8;
+            transition: all 0.3s ease;
+            opacity: 0.7;
         }
 
         .notification-item.unread {
+            background-color: #ffffff;
             border-left: 4px solid #3498db;
-            background-color: rgba(52, 152, 219, 0.1);
             opacity: 1;
             box-shadow: 0 2px 8px rgba(52, 152, 219, 0.2);
         }
@@ -102,6 +102,7 @@
         .notification-item.unread .notification-message {
             color: var(--text-primary);
             opacity: 1;
+            font-weight: 500;
         }
 
         .notification-item.unread .notification-time {
@@ -128,7 +129,7 @@
         .notification-title {
             font-weight: normal;
             margin-bottom: 5px;
-            color: var(--text-primary);
+            color: var(--text-secondary);
             opacity: 0.9;
         }
 
@@ -272,61 +273,57 @@
             const token = $("meta[name='_csrf']").attr("content");
             const header = $("meta[name='_csrf_header']").attr("content");
 
-            $.ajaxSetup({
-                beforeSend: function(xhr) {
-                    xhr.setRequestHeader(header, token);
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error:', error);
-                    if (xhr.status === 500) {
-                        alert('작업 중 오류가 발생했습니다.');
-                    }
-                }
+            // CSRF 토큰 설정
+            $(document).ajaxSend(function(e, xhr, options) {
+                xhr.setRequestHeader(header, token);
             });
 
             window.markAsRead = function(id) {
-                $.ajax({
-                    url: '/notifications/' + id + '/read',
-                    type: 'POST',
-                    success: function(response) {
-                        const notificationItem = $(`[data-id="${id}"]`);
-                        notificationItem.removeClass('unread');
-                        notificationItem.find('.read-button').fadeOut(300, function() {
-                            $(this).remove();
-                        });
-                        updateNotificationCount();
-                    }
-                });
+                if (confirm('이 알림을 읽음 처리하시겠습니까?')) {
+                    $.ajax({
+                        url: '/notifications/' + id + '/read',
+                        type: 'POST',
+                        success: function(response) {
+                            location.reload();
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Error:', error);
+                            alert('알림 읽음 처리 중 오류가 발생했습니다.');
+                        }
+                    });
+                }
             };
 
             window.deleteNotification = function(id) {
-                $.ajax({
-                    url: '/notifications/' + id + '/delete',
-                    type: 'POST',
-                    success: function(response) {
-                        $(`[data-id="${id}"]`).fadeOut(300, function() {
-                            $(this).remove();
-                            if ($('.notification-item').length === 0) {
-                                location.reload();
-                            }
-                            updateNotificationCount();
-                        });
-                    }
-                });
+                if (confirm('이 알림을 삭제하시겠습니까?')) {
+                    $.ajax({
+                        url: '/notifications/' + id + '/delete',
+                        type: 'POST',
+                        success: function(response) {
+                            location.reload();
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Error:', error);
+                            alert('알림 삭제 중 오류가 발생했습니다.');
+                        }
+                    });
+                }
             };
 
             window.markAllAsRead = function() {
-                $.ajax({
-                    url: '/notifications/read-all',
-                    type: 'POST',
-                    success: function(response) {
-                        $('.notification-item').removeClass('unread');
-                        $('.read-button').fadeOut(300, function() {
-                            $(this).remove();
-                        });
-                        updateNotificationCount();
-                    }
-                });
+                if (confirm('모든 알림을 읽음 처리하시겠습니까?')) {
+                    $.ajax({
+                        url: '/notifications/read-all',
+                        type: 'POST',
+                        success: function(response) {
+                            location.reload();
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Error:', error);
+                            alert('모든 알림 읽음 처리 중 오류가 발생했습니다.');
+                        }
+                    });
+                }
             };
 
             window.deleteAllNotifications = function() {
@@ -336,6 +333,10 @@
                         type: 'POST',
                         success: function(response) {
                             location.reload();
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Error:', error);
+                            alert('모든 알림 삭제 중 오류가 발생했습니다.');
                         }
                     });
                 }
@@ -353,6 +354,9 @@
                         } else {
                             badge.hide();
                         }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error:', error);
                     }
                 });
             }

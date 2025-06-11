@@ -5,12 +5,14 @@ import com.wallet.entity.Notification;
 import com.wallet.entity.NotificationType;
 import com.wallet.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
@@ -35,6 +37,7 @@ public class NotificationService {
                 .build();
 
         notificationRepository.save(notification);
+        log.debug("알림 생성 완료 - Member: {}, Type: {}, Amount: {}", member.getUsername(), type, amount);
     }
 
     @Transactional(readOnly = true)
@@ -49,6 +52,7 @@ public class NotificationService {
 
     @Transactional
     public void markAsRead(Long notificationId, Member member) {
+        log.debug("알림 읽음 처리 시작 - ID: {}, Member: {}", notificationId, member.getUsername());
         Notification notification = notificationRepository.findById(notificationId)
             .orElseThrow(() -> new IllegalArgumentException("알림을 찾을 수 없습니다."));
         
@@ -61,10 +65,12 @@ public class NotificationService {
         notificationRepository.saveAndFlush(notification);
         entityManager.flush();
         entityManager.clear();
+        log.debug("알림 읽음 처리 완료 - ID: {}", notificationId);
     }
 
     @Transactional
     public void deleteNotification(Long notificationId, Member member) {
+        log.debug("알림 삭제 시작 - ID: {}, Member: {}", notificationId, member.getUsername());
         Notification notification = notificationRepository.findById(notificationId)
             .orElseThrow(() -> new IllegalArgumentException("알림을 찾을 수 없습니다."));
         
@@ -73,21 +79,39 @@ public class NotificationService {
             throw new IllegalArgumentException("본인의 알림만 삭제할 수 있습니다.");
         }
         
-        notificationRepository.delete(notification);
+        try {
+            notificationRepository.delete(notification);
+            notificationRepository.flush(); // 즉시 삭제 실행
+            log.debug("알림 삭제 완료 - ID: {}", notificationId);
+        } catch (Exception e) {
+            log.error("알림 삭제 중 오류 발생 - ID: {}, Error: {}", notificationId, e.getMessage(), e);
+            throw new RuntimeException("알림 삭제 중 오류가 발생했습니다.", e);
+        }
     }
 
     @Transactional
     public void markAllAsRead(Member member) {
+        log.debug("전체 알림 읽음 처리 시작 - Member: {}", member.getUsername());
         List<Notification> notifications = notificationRepository.findByMemberAndIsReadFalse(member);
         for (Notification notification : notifications) {
             notification.setRead(true);
             notificationRepository.save(notification);
         }
+        notificationRepository.flush();
+        log.debug("전체 알림 읽음 처리 완료 - Member: {}, Count: {}", member.getUsername(), notifications.size());
     }
 
     @Transactional
     public void deleteAllNotifications(Member member) {
-        List<Notification> notifications = notificationRepository.findByMemberOrderByCreatedAtDesc(member);
-        notificationRepository.deleteAll(notifications);
+        log.debug("전체 알림 삭제 시작 - Member: {}", member.getUsername());
+        try {
+            List<Notification> notifications = notificationRepository.findByMemberOrderByCreatedAtDesc(member);
+            notificationRepository.deleteAll(notifications);
+            notificationRepository.flush(); // 즉시 삭제 실행
+            log.debug("전체 알림 삭제 완료 - Member: {}, Count: {}", member.getUsername(), notifications.size());
+        } catch (Exception e) {
+            log.error("전체 알림 삭제 중 오류 발생 - Member: {}, Error: {}", member.getUsername(), e.getMessage(), e);
+            throw new RuntimeException("전체 알림 삭제 중 오류가 발생했습니다.", e);
+        }
     }
 } 
