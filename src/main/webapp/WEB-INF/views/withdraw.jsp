@@ -278,9 +278,15 @@
                 
                 const amount = parseFloat($('#amount').val());
                 const toAddress = $('#toAddress').val();
+                const fromAddress = '${member.walletAddress}';
 
                 if (!toAddress.startsWith('0x')) {
                     alert('올바른 이더리움 주소를 입력해주세요. (0x로 시작)');
+                    return;
+                }
+
+                if (toAddress.toLowerCase() === fromAddress.toLowerCase()) {
+                    alert('출발지 주소와 목적지 주소가 동일합니다.');
                     return;
                 }
 

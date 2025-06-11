@@ -218,6 +218,11 @@ public class WalletService {
 
     @Transactional
     public Transaction withdraw(Member member, String toAddress, BigDecimal amount) {
+        // 출발지 주소와 목적지 주소가 같은지 검증
+        if (member.getWalletAddress().equalsIgnoreCase(toAddress)) {
+            throw new RuntimeException("출발지 주소와 목적지 주소가 동일합니다.");
+        }
+
         BigDecimal balance = getBalance(member.getWalletAddress());
         if (balance.compareTo(amount) < 0) {
             throw new RuntimeException("잔액이 부족합니다.");
