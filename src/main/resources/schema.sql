@@ -11,7 +11,9 @@ CREATE TABLE IF NOT EXISTS members (
     private_key VARCHAR(255),
     public_key VARCHAR(255),
     recovery_code VARCHAR(255),
-    balance DECIMAL(20,8) NOT NULL DEFAULT 0,
+    balance DECIMAL(40,18) NOT NULL DEFAULT 0,
+    is_admin BOOLEAN NOT NULL DEFAULT FALSE,
+    has_initialized_coin BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -20,12 +22,16 @@ CREATE TABLE IF NOT EXISTS transactions (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     member_id BIGINT NOT NULL,
     type VARCHAR(20) NOT NULL,
-    amount DECIMAL(20,8) NOT NULL,
+    amount DECIMAL(40,18) NOT NULL,
     from_address VARCHAR(42) NOT NULL,
     to_address VARCHAR(42) NOT NULL,
     status VARCHAR(20) NOT NULL,
-    transaction_hash VARCHAR(66) NOT NULL,
+    balance_after DECIMAL(40,18),
+    transaction_hash VARCHAR(100) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    gas_price VARCHAR(255),
+    gas_used VARCHAR(255),
+    block_number VARCHAR(255),
     FOREIGN KEY (member_id) REFERENCES members(id),
     UNIQUE KEY uk_transaction_hash (transaction_hash),
     INDEX idx_member_created (member_id, created_at)
@@ -71,4 +77,14 @@ CREATE TABLE IF NOT EXISTS SPRING_SESSION_ATTRIBUTES (
     ATTRIBUTE_BYTES BLOB NOT NULL,
     CONSTRAINT SPRING_SESSION_ATTRIBUTES_PK PRIMARY KEY (SESSION_PRIMARY_ID, ATTRIBUTE_NAME),
     CONSTRAINT SPRING_SESSION_ATTRIBUTES_FK FOREIGN KEY (SESSION_PRIMARY_ID) REFERENCES SPRING_SESSION(PRIMARY_ID) ON DELETE CASCADE
-) ENGINE=InnoDB ROW_FORMAT=DYNAMIC; 
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC;
+
+-- 거래 테이블에 가스 정보 컬럼 추가
+ALTER TABLE transactions
+ADD COLUMN gas_price VARCHAR(255) AFTER created_at,
+ADD COLUMN gas_used VARCHAR(255) AFTER gas_price,
+ADD COLUMN block_number VARCHAR(255) AFTER gas_used;
+
+-- 거래 테이블에 거래 후 잔액 컬럼 추가
+ALTER TABLE transactions
+ADD COLUMN balance_after DECIMAL(40,18) AFTER status; 
