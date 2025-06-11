@@ -74,8 +74,6 @@ public class NotificationService {
         }
         
         notificationRepository.delete(notification);
-        entityManager.flush();
-        entityManager.clear();
     }
 
     @Transactional
@@ -89,6 +87,7 @@ public class NotificationService {
 
     @Transactional
     public void deleteAllNotifications(Member member) {
-        notificationRepository.deleteByMember(member);
+        List<Notification> notifications = notificationRepository.findByMemberOrderByCreatedAtDesc(member);
+        notificationRepository.deleteAll(notifications);
     }
 } 

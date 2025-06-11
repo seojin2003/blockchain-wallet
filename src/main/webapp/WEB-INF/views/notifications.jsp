@@ -13,260 +13,252 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="/static/js/theme.js"></script>
+    <sec:csrfMetaTags />
     <style>
         body {
-            font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
+            font-family: 'Arial', sans-serif;
             background-color: var(--bg-primary);
             color: var(--text-primary);
         }
-        .nav {
-            background-color: var(--nav-bg);
-            padding: 15px 0;
-            margin-bottom: 30px;
-        }
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-            gap: 40px;
-        }
-        .nav-logo {
-            color: var(--nav-text);
-            font-size: 20px;
-            font-weight: bold;
-            text-decoration: none;
-        }
-        .nav-menu {
-            display: flex;
-            gap: 20px;
-        }
-        .nav-menu a {
-            color: var(--nav-text);
-            text-decoration: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .nav-menu a i {
-            font-size: 16px;
-        }
-        .nav-menu a:hover {
-            background-color: rgba(255,255,255,0.1);
-        }
-        .nav-menu a.active {
-            background-color: rgba(255,255,255,0.2);
-        }
+
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .notification-list {
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
         }
-        .notification-item {
-            background-color: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: background-color 0.3s;
-        }
-        .notification-item:hover {
-            background-color: var(--bg-hover);
-        }
-        .notification-item.unread {
-            border-left: 4px solid #3498db;
-        }
-        .notification-content {
-            flex: 1;
-        }
-        .notification-title {
-            font-weight: bold;
-            color: var(--text-primary);
-            margin-bottom: 5px;
-        }
-        .notification-message {
-            color: var(--text-secondary);
-            font-size: 14px;
-        }
-        .notification-time {
-            color: var(--text-secondary);
-            font-size: 12px;
-            margin-top: 5px;
-        }
-        .notification-actions {
-            margin-left: 15px;
-            display: flex;
-            gap: 10px;
-        }
-        .mark-read-btn, .delete-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 5px;
-            font-size: 14px;
-        }
-        .mark-read-btn {
-            color: #3498db;
-        }
-        .delete-btn {
-            color: #e74c3c;
-        }
-        .mark-read-btn:hover, .delete-btn:hover {
-            text-decoration: underline;
-        }
+
         .notification-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
+
         .notification-actions {
             display: flex;
             gap: 10px;
         }
-        .mark-all-read-btn {
-            background-color: #3498db;
-            color: white;
-            border: none;
+
+        .btn {
             padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: opacity 0.3s;
-        }
-        .delete-all-btn {
-            background-color: #e74c3c;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: opacity 0.3s;
-        }
-        .mark-all-read-btn:hover, .delete-all-btn:hover {
-            opacity: 0.9;
-        }
-        .empty-notifications {
-            text-align: center;
-            padding: 40px;
-            color: var(--text-secondary);
-            background-color: var(--bg-secondary);
             border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-        .user-info {
-            margin-left: auto;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: opacity 0.2s;
             display: flex;
             align-items: center;
-            gap: 10px;
-            color: var(--nav-text);
-            font-size: 14px;
+            gap: 6px;
         }
-        .user-info button {
-            color: var(--nav-text);
-            text-decoration: none;
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .notification-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .notification-item {
+            background-color: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+            border-left: 4px solid transparent;
+            transition: all 0.2s ease;
+            opacity: 0.8;
+        }
+
+        .notification-item.unread {
+            border-left: 4px solid #3498db;
+            background-color: rgba(52, 152, 219, 0.1);
+            opacity: 1;
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.2);
+        }
+
+        .notification-item.unread .notification-title {
+            font-weight: 700;
+            color: #3498db;
+        }
+
+        .notification-item.unread .notification-message {
+            color: var(--text-primary);
+            opacity: 1;
+        }
+
+        .notification-item.unread .notification-time {
+            font-weight: 600;
+            color: #3498db;
+        }
+
+        .notification-icon {
+            font-size: 24px;
+            color: var(--text-secondary);
+            opacity: 0.7;
+            transition: all 0.2s ease;
+        }
+
+        .notification-item.unread .notification-icon {
+            color: #3498db;
+            opacity: 1;
+        }
+
+        .notification-content {
+            flex-grow: 1;
+        }
+
+        .notification-title {
+            font-weight: normal;
+            margin-bottom: 5px;
+            color: var(--text-primary);
+            opacity: 0.9;
+        }
+
+        .notification-message {
+            color: var(--text-secondary);
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .notification-time {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-bottom: 10px;
+            opacity: 0.7;
+        }
+
+        .notification-item-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn-text {
             background: none;
             border: none;
+            padding: 4px 8px;
+            color: var(--text-secondary);
             cursor: pointer;
             font-size: 14px;
-            padding: 0;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
         }
-        .user-info button:hover {
-            text-decoration: underline;
-        }
-        h1 {
+
+        .btn-text:hover {
             color: var(--text-primary);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .notification-item.unread .btn-text {
+            color: #3498db;
+        }
+
+        .notification-item.unread .btn-text:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: #2980b9;
+        }
+
+        .no-notifications {
+            text-align: center;
+            padding: 40px;
+            background-color: var(--bg-secondary);
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .no-notifications i {
+            font-size: 48px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .no-notifications p {
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .page-title {
             font-size: 24px;
             font-weight: bold;
             margin: 0;
-        }
-        .notification-link {
-            position: relative;
-        }
-        
-        .notification-badge {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background-color: #e74c3c;
-            color: white;
-            border-radius: 50%;
-            padding: 2px 6px;
-            font-size: 12px;
-            min-width: 18px;
-            text-align: center;
+            color: var(--text-primary);
         }
     </style>
 </head>
 <body>
-    <div class="nav">
-        <div class="nav-container">
-            <a href="/wallet" class="nav-logo">블록체인 월렛</a>
-            <div class="nav-menu">
-                <a href="/wallet"><i class="fas fa-wallet"></i> 지갑</a>
-                <a href="/chart"><i class="fas fa-chart-line"></i> 시세</a>
-                <a href="/notifications" class="active notification-link">
-                    <i class="fas fa-bell"></i>
-                    <span id="notification-count" class="notification-badge" style="display: none;">0</span>
-                </a>
-            </div>
-            <div class="user-info">
-                <span><sec:authentication property="principal.username"/>님</span>
-                |
-                <form action="/logout" method="post" style="display: inline;">
-                    <sec:csrfInput />
-                    <button type="submit">로그아웃</button>
-                </form>
-            </div>
-        </div>
-    </div>
-
+    <%@ include file="common/header.jsp" %>
+    
     <div class="container">
+        <div class="notification-header">
+            <h1 class="page-title">알림</h1>
+            <c:if test="${not empty notifications}">
+                <div class="notification-actions">
+                    <button class="btn btn-primary" onclick="markAllAsRead()">
+                        <i class="fas fa-check-double"></i>
+                        모두 읽음
+                    </button>
+                    <button class="btn btn-danger" onclick="deleteAllNotifications()">
+                        <i class="fas fa-trash"></i>
+                        모두 삭제
+                    </button>
+                </div>
+            </c:if>
+        </div>
+        
         <div class="notification-list">
-            <div class="notification-header">
-                <h1>알림</h1>
-                <c:if test="${not empty notifications}">
-                    <div class="notification-actions">
-                        <button class="mark-all-read-btn" onclick="markAllAsRead()">모두 읽음</button>
-                        <button class="delete-all-btn" onclick="deleteAllNotifications()">모두 삭제</button>
-                    </div>
-                </c:if>
-            </div>
-
             <c:choose>
                 <c:when test="${empty notifications}">
-                    <div class="empty-notifications">
-                        <p>알림이 없습니다.</p>
+                    <div class="no-notifications">
+                        <i class="fas fa-bell-slash"></i>
+                        <p>새로운 알림이 없습니다.</p>
                     </div>
                 </c:when>
                 <c:otherwise>
                     <c:forEach items="${notifications}" var="notification">
                         <div class="notification-item ${notification.read ? '' : 'unread'}" data-id="${notification.id}">
+                            <div class="notification-icon">
+                                <i class="fas fa-coins"></i>
+                            </div>
                             <div class="notification-content">
+                                <div class="notification-time">
+                                    <fmt:parseDate value="${notification.createdAt}" pattern="yyyy-MM-dd'T'HH:mm" var="parsedDate" type="both" />
+                                    <fmt:formatDate value="${parsedDate}" pattern="yyyy-MM-dd HH:mm"/>
+                                </div>
                                 <div class="notification-title">${notification.title}</div>
                                 <div class="notification-message">${notification.message}</div>
-                                <div class="notification-time">
-                                    <fmt:parseDate value="${notification.createdAt}" pattern="yyyy-MM-dd'T'HH:mm:ss" var="parsedDate" type="both" />
-                                    <fmt:formatDate value="${parsedDate}" pattern="yyyy-MM-dd HH:mm:ss" />
+                                <div class="notification-item-actions">
+                                    <c:if test="${!notification.read}">
+                                        <button class="btn-text read-button" onclick="markAsRead(${notification.id})">
+                                            <i class="fas fa-check"></i>
+                                            읽음 표시
+                                        </button>
+                                    </c:if>
+                                    <button class="btn-text" onclick="deleteNotification(${notification.id})">
+                                        <i class="fas fa-trash"></i>
+                                        삭제
+                                    </button>
                                 </div>
-                            </div>
-                            <div class="notification-actions">
-                                <c:if test="${!notification.read}">
-                                    <button class="mark-read-btn" onclick="markAsRead(${notification.id})">읽음 표시</button>
-                                </c:if>
-                                <button class="delete-btn" onclick="deleteNotification(${notification.id})">삭제</button>
                             </div>
                         </div>
                     </c:forEach>
@@ -277,113 +269,77 @@
 
     <script>
         $(document).ready(function() {
-            // CSRF 토큰 가져오기
-            const token = $("input[name='_csrf']").val();
-            const header = "${_csrf.headerName}";
+            const token = $("meta[name='_csrf']").attr("content");
+            const header = $("meta[name='_csrf_header']").attr("content");
 
-            // AJAX 요청 전에 CSRF 토큰 설정
             $.ajaxSetup({
                 beforeSend: function(xhr) {
                     xhr.setRequestHeader(header, token);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', error);
+                    if (xhr.status === 500) {
+                        alert('작업 중 오류가 발생했습니다.');
+                    }
                 }
             });
 
-            function markAsRead(id) {
+            window.markAsRead = function(id) {
                 $.ajax({
                     url: '/notifications/' + id + '/read',
                     type: 'POST',
-                    success: function() {
-                        const notification = $('[data-id="' + id + '"]');
-                        notification.removeClass('unread');
-                        notification.find('.mark-read-btn').remove();
+                    success: function(response) {
+                        const notificationItem = $(`[data-id="${id}"]`);
+                        notificationItem.removeClass('unread');
+                        notificationItem.find('.read-button').fadeOut(300, function() {
+                            $(this).remove();
+                        });
                         updateNotificationCount();
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error:', error);
-                        handleError(xhr);
                     }
                 });
-            }
+            };
 
-            function deleteNotification(id) {
-                if (confirm('이 알림을 삭제하시겠습니까?')) {
-                    $.ajax({
-                        url: '/notifications/' + id,
-                        type: 'DELETE',
-                        success: function() {
-                            const notification = $('[data-id="' + id + '"]');
-                            notification.fadeOut(300, function() {
-                                notification.remove();
-                                checkEmptyNotifications();
-                                updateNotificationCount();
-                            });
-                        },
-                        error: function(xhr, status, error) {
-                            console.error('Error:', error);
-                            handleError(xhr);
-                        }
-                    });
-                }
-            }
+            window.deleteNotification = function(id) {
+                $.ajax({
+                    url: '/notifications/' + id + '/delete',
+                    type: 'POST',
+                    success: function(response) {
+                        $(`[data-id="${id}"]`).fadeOut(300, function() {
+                            $(this).remove();
+                            if ($('.notification-item').length === 0) {
+                                location.reload();
+                            }
+                            updateNotificationCount();
+                        });
+                    }
+                });
+            };
 
-            function markAllAsRead() {
+            window.markAllAsRead = function() {
                 $.ajax({
                     url: '/notifications/read-all',
                     type: 'POST',
-                    success: function() {
+                    success: function(response) {
                         $('.notification-item').removeClass('unread');
-                        $('.mark-read-btn').remove();
+                        $('.read-button').fadeOut(300, function() {
+                            $(this).remove();
+                        });
                         updateNotificationCount();
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error:', error);
-                        handleError(xhr);
                     }
                 });
-            }
+            };
 
-            function deleteAllNotifications() {
+            window.deleteAllNotifications = function() {
                 if (confirm('모든 알림을 삭제하시겠습니까?')) {
                     $.ajax({
                         url: '/notifications/delete-all',
-                        type: 'DELETE',
-                        success: function() {
-                            $('.notification-item').fadeOut(300, function() {
-                                $(this).remove();
-                                showEmptyNotifications();
-                                updateNotificationCount();
-                            });
-                        },
-                        error: function(xhr, status, error) {
-                            console.error('Error:', error);
-                            handleError(xhr);
+                        type: 'POST',
+                        success: function(response) {
+                            location.reload();
                         }
                     });
                 }
-            }
-
-            function handleError(xhr) {
-                if (xhr.status === 401) {
-                    window.location.href = '/login';
-                } else if (xhr.status === 403) {
-                    alert('세션이 만료되었습니다. 다시 로그인해주세요.');
-                    window.location.href = '/login';
-                } else {
-                    alert('작업 중 오류가 발생했습니다. 다시 시도해주세요.');
-                }
-            }
-
-            function showEmptyNotifications() {
-                const emptyMessage = `
-                    <div class="empty-notifications">
-                        <p>알림이 없습니다.</p>
-                    </div>
-                `;
-                $('.notification-list').html(
-                    '<h1 class="text-2xl font-bold mb-6">알림</h1>' +
-                    emptyMessage
-                );
-            }
+            };
 
             function updateNotificationCount() {
                 $.ajax({
@@ -397,19 +353,9 @@
                         } else {
                             badge.hide();
                         }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error:', error);
-                        handleError(xhr);
                     }
                 });
             }
-
-            // 전역 함수로 등록
-            window.markAsRead = markAsRead;
-            window.deleteNotification = deleteNotification;
-            window.markAllAsRead = markAllAsRead;
-            window.deleteAllNotifications = deleteAllNotifications;
 
             // 초기 알림 개수 업데이트
             updateNotificationCount();

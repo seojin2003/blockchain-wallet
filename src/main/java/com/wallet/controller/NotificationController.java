@@ -5,6 +5,7 @@ import com.wallet.entity.Notification;
 import com.wallet.service.MemberService;
 import com.wallet.service.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
@@ -36,7 +37,7 @@ public class NotificationController {
     public ResponseEntity<?> readNotification(@PathVariable Long id, @AuthenticationPrincipal User user) {
         Member member = memberService.findByUsername(user.getUsername());
         notificationService.markAsRead(id, member);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(Map.of("success", true));
     }
 
     @PostMapping("/notifications/read-all")
@@ -44,23 +45,33 @@ public class NotificationController {
     public ResponseEntity<?> readAllNotifications(@AuthenticationPrincipal User user) {
         Member member = memberService.findByUsername(user.getUsername());
         notificationService.markAllAsRead(member);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(Map.of("success", true));
     }
 
-    @DeleteMapping("/notifications/{id}")
+    @PostMapping("/notifications/{id}/delete")
     @ResponseBody
     public ResponseEntity<?> deleteNotification(@PathVariable Long id, @AuthenticationPrincipal User user) {
-        Member member = memberService.findByUsername(user.getUsername());
-        notificationService.deleteNotification(id, member);
-        return ResponseEntity.ok().build();
+        try {
+            Member member = memberService.findByUsername(user.getUsername());
+            notificationService.deleteNotification(id, member);
+            return ResponseEntity.ok(Map.of("success", true));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("success", false, "message", e.getMessage()));
+        }
     }
 
-    @DeleteMapping("/notifications/delete-all")
+    @PostMapping("/notifications/delete-all")
     @ResponseBody
     public ResponseEntity<?> deleteAllNotifications(@AuthenticationPrincipal User user) {
-        Member member = memberService.findByUsername(user.getUsername());
-        notificationService.deleteAllNotifications(member);
-        return ResponseEntity.ok().build();
+        try {
+            Member member = memberService.findByUsername(user.getUsername());
+            notificationService.deleteAllNotifications(member);
+            return ResponseEntity.ok(Map.of("success", true));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("success", false, "message", e.getMessage()));
+        }
     }
 
     @GetMapping("/notifications/count")
