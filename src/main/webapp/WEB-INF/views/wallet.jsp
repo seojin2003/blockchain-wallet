@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -392,34 +393,8 @@
     </style>
 </head>
 <body>
-    <div class="nav">
-        <div class="nav-container">
-            <a href="/wallet" class="nav-logo">블록체인 월렛</a>
-            <div class="nav-menu">
-                <a href="/wallet" class="active">
-                    <i class="fas fa-wallet"></i>
-                    지갑
-                </a>
-                <a href="/chart">
-                    <i class="fas fa-chart-line"></i>
-                    시세
-                </a>
-                <a href="/notifications" class="notification-link">
-                    <i class="fas fa-bell"></i>
-                    <span id="notification-count" class="notification-badge" style="display: none;">0</span>
-                </a>
-            </div>
-            <div class="user-info">
-                <span><sec:authentication property="principal.username"/>님</span>
-                |
-                <form action="/logout" method="post" style="display: inline;">
-                    <sec:csrfInput />
-                    <button type="submit">로그아웃</button>
-                </form>
-            </div>
-        </div>
-    </div>
-
+    <jsp:include page="common/header.jsp" />
+    
     <div class="container">
         <div class="card">
             <h1>내 지갑 정보</h1>

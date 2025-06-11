@@ -1,17 +1,17 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <title>출금</title>
+    <script src="/static/js/theme.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/theme.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="/static/js/theme.js"></script>
-    <script src="/js/notification.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -20,67 +20,8 @@
             background-color: var(--bg-primary);
             color: var(--text-primary);
         }
-        .nav {
-            background-color: var(--nav-bg);
-            padding: 15px 0;
-            margin-bottom: 30px;
-        }
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-            gap: 40px;
-        }
-        .nav-logo {
-            color: var(--nav-text);
-            font-size: 20px;
-            font-weight: bold;
-            text-decoration: none;
-        }
-        .nav-menu {
-            display: flex;
-            gap: 20px;
-        }
-        .nav-menu a {
-            color: var(--nav-text);
-            text-decoration: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .nav-menu a i {
-            font-size: 16px;
-        }
-        .nav-menu a:hover {
-            background-color: rgba(255,255,255,0.1);
-        }
-        .nav-menu a.active {
-            background-color: rgba(255,255,255,0.2);
-        }
-        .notification-link {
-            position: relative;
-            display: inline-block;
-        }
-        .notification-badge {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background-color: #dc3545;
-            color: white;
-            border-radius: 50%;
-            padding: 2px 6px;
-            font-size: 12px;
-            min-width: 18px;
-            text-align: center;
-            font-weight: bold;
-            z-index: 1;
-        }
         .container {
-            max-width: 600px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -89,237 +30,141 @@
             border-radius: 8px;
             box-shadow: var(--card-shadow);
             padding: 20px;
-        }
-        .form-group {
             margin-bottom: 20px;
         }
-        .form-label {
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
             display: block;
             margin-bottom: 5px;
-            font-weight: bold;
             color: var(--text-secondary);
         }
         .form-control {
             width: 100%;
-            padding: 8px;
+            padding: 8px 12px;
             border: 1px solid var(--border-color);
             border-radius: 4px;
-            box-sizing: border-box;
-            background-color: var(--bg-secondary);
+            background-color: var(--bg-primary);
             color: var(--text-primary);
         }
-        .form-text {
-            margin-top: 5px;
-            font-size: 14px;
-            color: var(--text-secondary);
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
         }
         .button {
             padding: 10px 20px;
             border-radius: 4px;
             border: none;
-            font-weight: bold;
             cursor: pointer;
+            font-size: 14px;
             text-decoration: none;
-            text-align: center;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
         }
-        .button-withdraw {
-            background-color: #dc3545;
+        .button-primary {
+            background-color: var(--button-primary);
             color: white;
         }
-        .button-cancel {
-            background-color: #6c757d;
+        .button-secondary {
+            background-color: var(--button-secondary);
             color: white;
-            margin-left: 10px;
         }
         .button:hover {
             opacity: 0.9;
         }
-        .user-info {
-            margin-left: auto;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: white;
-            font-size: 14px;
-        }
-        .user-info button {
-            color: white;
-            text-decoration: none;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
-            padding: 0;
-        }
-        .user-info button:hover {
-            text-decoration: underline;
-        }
-        .alert {
-            padding: 15px;
-            margin-bottom: 20px;
-            border: 1px solid transparent;
-            border-radius: 4px;
-        }
         .alert-info {
             background-color: var(--alert-info-bg);
-            color: var(--alert-info-text);
-            border-color: var(--alert-info-border);
-        }
-        .form-control-static {
-            padding: 8px 12px;
-            background-color: var(--bg-secondary);
-            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 15px;
             border-radius: 4px;
-            margin-bottom: 10px;
-        }
-        
-        .form-control-static strong {
-            color: var(--text-primary);
-            font-size: 16px;
-        }
-        h1 {
-            color: var(--text-primary);
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
-    <div class="nav">
-        <div class="nav-container">
-            <a href="/wallet" class="nav-logo">블록체인 월렛</a>
-            <div class="nav-menu">
-                <a href="/wallet">
-                    <i class="fas fa-wallet"></i>
-                    지갑
-                </a>
-                <a href="/chart">
-                    <i class="fas fa-chart-line"></i>
-                    시세
-                </a>
-                <a href="/notifications" class="notification-link">
-                    <i class="fas fa-bell"></i>
-                    <span id="notification-count" class="notification-badge" style="display: none;">0</span>
-                </a>
-            </div>
-            <div class="user-info">
-                <span><sec:authentication property="principal.username"/>님</span>
-                |
-                <form action="/logout" method="post" style="display: inline;">
-                    <sec:csrfInput />
-                    <button type="submit">로그아웃</button>
-                </form>
-            </div>
-        </div>
-    </div>
+    <jsp:include page="common/header.jsp" />
 
     <div class="container">
         <div class="card">
-            <h1>출금</h1>
-            
-            <div class="alert alert-info">
-                출금하실 금액과 목적지 주소를 입력해주세요.
+            <h2 class="text-2xl font-bold mb-4">출금</h2>
+            <div class="alert-info">
+                <p>출금하실 금액과 목적지 주소를 입력해주세요.</p>
             </div>
-
             <form id="withdrawForm">
                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
-                
                 <div class="form-group">
-                    <label class="form-label">현재 잔액</label>
-                    <div class="form-control-static">
-                        <strong>${member.balance} ETH</strong>
-                    </div>
+                    <label>현재 잔액</label>
+                    <input type="text" class="form-control" value="${member.balance} ETH" readonly>
                 </div>
-
                 <div class="form-group">
-                    <label class="form-label">내 지갑 주소</label>
+                    <label>내 지갑 주소</label>
                     <input type="text" class="form-control" value="${member.walletAddress}" readonly>
-                    <div class="form-text">이 주소에서 출금됩니다.</div>
+                    <p class="text-sm text-gray-500 mt-1">이 주소에서 출금됩니다.</p>
                 </div>
-
                 <div class="form-group">
-                    <label class="form-label" for="toAddress">목적지 주소</label>
+                    <label>목적지 주소</label>
                     <input type="text" class="form-control" id="toAddress" name="toAddress" required>
-                    <div class="form-text">ETH를 받을 지갑 주소를 입력해주세요.</div>
+                    <p class="text-sm text-gray-500 mt-1">ETH를 받을 지갑 주소를 입력해주세요.</p>
                 </div>
-
                 <div class="form-group">
-                    <label class="form-label" for="amount">출금 금액</label>
+                    <label>출금 금액</label>
                     <input type="number" class="form-control" id="amount" name="amount" step="0.00000001" required>
-                    <div class="form-text">출금하실 ETH 수량을 입력해주세요.</div>
+                    <p class="text-sm text-gray-500 mt-1">출금하실 ETH 수량을 입력해주세요.</p>
                 </div>
-
-                <div>
-                    <button type="submit" class="button button-withdraw">출금하기</button>
-                    <a href="/wallet" class="button button-cancel">취소</a>
+                <div class="button-group">
+                    <button type="submit" class="button button-primary">
+                        <i class="fas fa-paper-plane"></i>
+                        출금하기
+                    </button>
+                    <a href="/wallet" class="button button-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        취소
+                    </a>
                 </div>
             </form>
         </div>
     </div>
+
     <script>
-        function updateNotificationCount() {
-            $.get('/notifications/count', function(response) {
-                const count = response.count;
-                const badge = $('#notification-count');
-                if (count > 0) {
-                    badge.text(count).show();
-                } else {
-                    badge.hide();
-                }
-            });
-        }
-
         $(document).ready(function() {
-            updateNotificationCount();
-            // 30초마다 알림 개수 업데이트
-            setInterval(updateNotificationCount, 30000);
-
-            $('#withdrawForm').on('submit', function(e) {
+            $('#withdrawForm').submit(function(e) {
                 e.preventDefault();
                 
-                const amount = parseFloat($('#amount').val());
                 const toAddress = $('#toAddress').val();
-                const fromAddress = '${member.walletAddress}';
-
-                if (!toAddress.startsWith('0x')) {
-                    alert('올바른 이더리움 주소를 입력해주세요. (0x로 시작)');
+                const amount = $('#amount').val();
+                
+                if (!toAddress || toAddress.trim() === '') {
+                    alert('목적지 주소를 입력해주세요.');
                     return;
                 }
-
-                if (toAddress.toLowerCase() === fromAddress.toLowerCase()) {
-                    alert('출발지 주소와 목적지 주소가 동일합니다.');
+                
+                if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+                    alert('유효한 금액을 입력해주세요.');
                     return;
                 }
-
-                if (isNaN(amount) || amount <= 0) {
-                    alert('올바른 출금 금액을 입력해주세요.');
+                
+                if (parseFloat(amount) > parseFloat('${member.balance}')) {
+                    alert('잔액이 부족합니다.');
                     return;
                 }
-
-                if (confirm('출금을 진행하시겠습니까?')) {
-                    const token = $("input[name='${_csrf.parameterName}']").val();
-                    const requestData = {
-                        toAddress: $('#toAddress').val(),
-                        amount: amount,
-                        _csrf: token
-                    };
-                    
-                    console.log('요청 데이터:', requestData);
-                    
+                
+                if (confirm('출금하시겠습니까?')) {
                     $.ajax({
                         url: '/api/wallet/withdraw',
                         type: 'POST',
-                        contentType: 'application/x-www-form-urlencoded',
-                        data: requestData,
+                        data: {
+                            toAddress: toAddress,
+                            amount: amount,
+                            _csrf: $('input[name="_csrf"]').val()
+                        },
                         success: function(response) {
-                            console.log('성공 응답:', response);
                             alert('출금이 완료되었습니다.');
                             window.location.href = '/wallet';
                         },
-                        error: function(xhr, status, error) {
-                            console.error('에러 상태:', status);
-                            console.error('에러 메시지:', error);
-                            console.error('서버 응답:', xhr.responseText);
-                            
+                        error: function(xhr) {
                             let errorMsg;
                             try {
                                 const errorResponse = JSON.parse(xhr.responseText);
@@ -327,7 +172,6 @@
                             } catch (e) {
                                 errorMsg = '서버와의 통신 중 오류가 발생했습니다.';
                             }
-                            
                             alert(errorMsg);
                         }
                     });

@@ -76,11 +76,17 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+            .headers()
+                .frameOptions().sameOrigin()
+                .addHeaderWriter((request, response) -> {
+                    response.setHeader("Permissions-Policy", "fullscreen=*");
+                })
+                .and()
             .csrf()
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 .and()
             .authorizeRequests()
-                .antMatchers("/css/**", "/js/**", "/images/**", "/static/**", "/webjars/**").permitAll()
+                .antMatchers("/css/**", "/js/**", "/images/**", "/static/**", "/webjars/**", "/**/*.pdf").permitAll()
                 .antMatchers("/", "/login", "/register", "/signup", "/api/register", "/api/check-username").permitAll()
                 .antMatchers("/api/**").authenticated()
                 .anyRequest().authenticated()
