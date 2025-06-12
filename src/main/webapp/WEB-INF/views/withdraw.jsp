@@ -130,6 +130,10 @@
 
     <script>
         $(document).ready(function() {
+            function isValidEthereumAddress(address) {
+                return address && address.match(/^0x[0-9a-fA-F]{40}$/);
+            }
+
             $('#withdrawForm').submit(function(e) {
                 e.preventDefault();
                 
@@ -138,16 +142,25 @@
                 
                 if (!toAddress || toAddress.trim() === '') {
                     alert('목적지 주소를 입력해주세요.');
+                    $('#toAddress').focus();
+                    return;
+                }
+
+                if (!isValidEthereumAddress(toAddress)) {
+                    alert('올바른 이더리움 주소를 입력해주세요.\n(예: 0x로 시작하는 40자리 16진수)');
+                    $('#toAddress').focus();
                     return;
                 }
                 
                 if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
                     alert('유효한 금액을 입력해주세요.');
+                    $('#amount').focus();
                     return;
                 }
                 
                 if (parseFloat(amount) > parseFloat('${member.balance}')) {
                     alert('잔액이 부족합니다.');
+                    $('#amount').focus();
                     return;
                 }
                 
@@ -173,6 +186,11 @@
                                 errorMsg = '서버와의 통신 중 오류가 발생했습니다.';
                             }
                             alert(errorMsg);
+                            if (errorMsg.includes('이더리움 주소')) {
+                                $('#toAddress').focus();
+                            } else if (errorMsg.includes('금액')) {
+                                $('#amount').focus();
+                            }
                         }
                     });
                 }

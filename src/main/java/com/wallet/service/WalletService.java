@@ -218,6 +218,11 @@ public class WalletService {
 
     @Transactional
     public Transaction withdraw(Member member, String toAddress, BigDecimal amount) {
+        // 이더리움 주소 유효성 검사
+        if (!isValidEthereumAddress(toAddress)) {
+            throw new RuntimeException("올바르지 않은 이더리움 주소입니다.");
+        }
+
         // 출발지 주소와 목적지 주소가 같은지 검증
         if (member.getWalletAddress().equalsIgnoreCase(toAddress)) {
             throw new RuntimeException("출발지 주소와 목적지 주소가 동일합니다.");
@@ -322,5 +327,11 @@ public class WalletService {
         return memberService.findByWalletAddress(walletAddress)
             .map(Member::getBalance)
             .orElse(BigDecimal.ZERO);
+    }
+
+    private boolean isValidEthereumAddress(String address) {
+        // 이더리움 주소 형식 검증 (0x로 시작하는 40자리 16진수)
+        return address != null && 
+               address.matches("^0x[0-9a-fA-F]{40}$");
     }
 } 
