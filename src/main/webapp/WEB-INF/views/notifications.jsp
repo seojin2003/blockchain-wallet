@@ -15,25 +15,99 @@
     <script src="/static/js/theme.js"></script>
     <sec:csrfMetaTags />
     <style>
+        /* 루트 레벨에서 트랜지션 적용 */
+        :root {
+            --transition-speed: 0.3s;
+        }
+
+        /* 모든 요소에 동일한 트랜지션 적용 */
+        body, 
+        .notification-item,
+        .notification-icon,
+        .notification-title,
+        .notification-message,
+        .notification-time,
+        .btn-text,
+        .page-title,
+        .btn,
+        .notification-content {
+            transition: all var(--transition-speed) ease;
+        }
+
         body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            animation: fadeIn 0.3s ease-in-out;
             margin: 0;
             padding: 0;
             font-family: 'Arial', sans-serif;
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* 다크모드 전환 시 부드러운 전환 */
+        body,
+        .notification-item,
+        .notification-icon,
+        .notification-title,
+        .notification-message,
+        .notification-time,
+        .btn-text,
+        .page-title,
+        .btn,
+        .notification-content,
+        .container,
+        .notification-header,
+        .notification-actions {
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* 다크모드 전환 시 배경 오버레이 효과 */
+        .theme-transition-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 9999;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .theme-transition-overlay.active {
+            opacity: 1;
         }
 
         .container {
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
+        }
+
+        .notification-wrapper {
+            background-color: var(--box-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .notification-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding-bottom: 20px;
             margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .notification-actions {
@@ -43,14 +117,15 @@
 
         .btn {
             padding: 8px 16px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
+            border-radius: 4px;
             font-size: 14px;
-            transition: all 0.2s ease;
+            font-weight: 500;
+            cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
+            border: none;
+            transition: all 0.3s ease;
         }
 
         .btn:hover {
@@ -63,87 +138,63 @@
         }
 
         .btn-danger {
-            background-color: var(--danger-color);
+            background-color: #dc3545;
             color: white;
         }
 
         .notification-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+            background-color: var(--box-bg);
         }
 
         .notification-item {
-            background-color: var(--bg-secondary);
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             display: flex;
-            align-items: center;
-            gap: 15px;
-            position: relative;
-            border-left: 4px solid transparent;
-            transition: all 0.3s ease;
-            opacity: 0.7;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            background-color: var(--bg-primary);
+            transition: background-color 0.3s ease;
+            border: 1px solid var(--border-color);
+        }
+
+        .notification-item:hover {
+            background-color: var(--bg-secondary);
         }
 
         .notification-item.unread {
-            background-color: #ffffff;
-            border-left: 4px solid #3498db;
-            opacity: 1;
-            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.2);
+            border-left: 3px solid var(--primary-color);
         }
 
-        .notification-item.unread .notification-title {
-            font-weight: 700;
-            color: #3498db;
-        }
-
-        .notification-item.unread .notification-message {
-            color: var(--text-primary);
-            opacity: 1;
-            font-weight: 500;
-        }
-
-        .notification-item.unread .notification-time {
-            font-weight: 600;
-            color: #3498db;
+        /* 알림 아이템 사이 구분선 추가 */
+        .notification-item:not(:last-child) {
+            border-bottom: 1px solid var(--border-color);
         }
 
         .notification-icon {
+            margin-right: 15px;
             font-size: 24px;
-            color: var(--text-secondary);
-            opacity: 0.7;
-            transition: all 0.2s ease;
-        }
-
-        .notification-item.unread .notification-icon {
-            color: #3498db;
-            opacity: 1;
+            color: var(--text-color);
         }
 
         .notification-content {
-            flex-grow: 1;
+            flex: 1;
+        }
+
+        .notification-time {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
         }
 
         .notification-title {
-            font-weight: normal;
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--text-color);
             margin-bottom: 5px;
-            color: var(--text-secondary);
-            opacity: 0.9;
         }
 
         .notification-message {
             color: var(--text-secondary);
-            font-size: 14px;
-            opacity: 0.8;
-        }
-
-        .notification-time {
-            color: var(--text-secondary);
-            font-size: 12px;
             margin-bottom: 10px;
-            opacity: 0.7;
         }
 
         .notification-item-actions {
@@ -155,55 +206,108 @@
         .btn-text {
             background: none;
             border: none;
-            padding: 4px 8px;
-            color: var(--text-secondary);
+            color: var(--text-color);
             cursor: pointer;
+            padding: 5px 10px;
             font-size: 14px;
             display: flex;
             align-items: center;
-            gap: 4px;
-            border-radius: 4px;
-            transition: all 0.2s ease;
+            gap: 5px;
+            transition: all 0.3s ease;
         }
 
         .btn-text:hover {
-            color: var(--text-primary);
-            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--primary-color);
         }
 
-        .notification-item.unread .btn-text {
-            color: #3498db;
+        .btn-text i {
+            font-size: 16px;
         }
 
-        .notification-item.unread .btn-text:hover {
-            background-color: rgba(52, 152, 219, 0.1);
-            color: #2980b9;
+        .read-button {
+            color: var(--primary-color);
         }
 
         .no-notifications {
             text-align: center;
             padding: 40px;
+            color: var(--text-secondary);
             background-color: var(--bg-secondary);
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
         }
 
         .no-notifications i {
             font-size: 48px;
-            color: var(--text-secondary);
             margin-bottom: 20px;
-        }
-
-        .no-notifications p {
-            color: var(--text-secondary);
-            margin: 0;
         }
 
         .page-title {
             font-size: 24px;
-            font-weight: bold;
+            color: var(--text-color);
             margin: 0;
-            color: var(--text-primary);
+            margin-bottom: 20px;
+        }
+
+        /* 라이트/다크 모드 변수 */
+        [data-theme="light"] {
+            --text-color: #333;
+            --text-secondary: #666;
+            --bg-color: #f8f9fa;
+            --bg-secondary: #ffffff;
+            --bg-highlight: #f8f9fa;
+            --primary-color: #1a73e8;
+            --border-color: #e1e4e8;
+            --box-bg: #ffffff;
+        }
+
+        [data-theme="dark"] {
+            --text-color: #e1e1e1;
+            --text-secondary: #a1a1a1;
+            --bg-color: #0d1117;
+            --bg-secondary: #0d1117;
+            --bg-highlight: #1e3a5f;
+            --primary-color: #7289da;
+            --border-color: #30363d;
+            --box-bg: #1b2838;
+        }
+
+        /* 다크 모드일 때는 테두리 제거 */
+        [data-theme="dark"] .notification-header,
+        [data-theme="dark"] .notification-list,
+        [data-theme="dark"] .notification-item {
+            border: none;
+        }
+
+        [data-theme="dark"] .notification-item.unread {
+            border-left: 3px solid var(--primary-color);
+        }
+
+        /* 토스트 메시지 스타일 추가 */
+        .toast-message {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: none;
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+            transition: background-color var(--transition-speed) ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
     </style>
 </head>
@@ -217,11 +321,11 @@
                 <div class="notification-actions">
                     <button class="btn btn-primary" onclick="markAllAsRead()">
                         <i class="fas fa-check-double"></i>
-                        모두 읽음
+                        전체 읽음
                     </button>
                     <button class="btn btn-danger" onclick="deleteAllNotifications()">
                         <i class="fas fa-trash"></i>
-                        모두 삭제
+                        전체 삭제
                     </button>
                 </div>
             </c:if>
@@ -239,7 +343,17 @@
                     <c:forEach items="${notifications}" var="notification">
                         <div class="notification-item ${notification.read ? '' : 'unread'}" data-id="${notification.id}">
                             <div class="notification-icon">
-                                <i class="fas fa-coins"></i>
+                                <c:choose>
+                                    <c:when test="${notification.type eq 'DEPOSIT'}">
+                                        <i class="fas fa-arrow-down" style="color: #4CAF50;"></i>
+                                    </c:when>
+                                    <c:when test="${notification.type eq 'WITHDRAW'}">
+                                        <i class="fas fa-arrow-up" style="color: #f44336;"></i>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <i class="fas fa-bell"></i>
+                                    </c:otherwise>
+                                </c:choose>
                             </div>
                             <div class="notification-content">
                                 <div class="notification-time">
@@ -268,6 +382,12 @@
         </div>
     </div>
 
+    <!-- 토스트 메시지 컨테이너 추가 -->
+    <div id="toastMessage" class="toast-message"></div>
+
+    <!-- 테마 전환 오버레이 추가 -->
+    <div class="theme-transition-overlay"></div>
+
     <script>
         $(document).ready(function() {
             const token = $("meta[name='_csrf']").attr("content");
@@ -278,68 +398,77 @@
                 xhr.setRequestHeader(header, token);
             });
 
-            window.markAsRead = function(id) {
-                if (confirm('이 알림을 읽음 처리하시겠습니까?')) {
-                    $.ajax({
-                        url: '/notifications/' + id + '/read',
-                        type: 'POST',
-                        success: function(response) {
-                            location.reload();
-                        },
-                        error: function(xhr, status, error) {
-                            console.error('Error:', error);
-                            alert('알림 읽음 처리 중 오류가 발생했습니다.');
-                        }
-                    });
-                }
-            };
-
-            window.deleteNotification = function(id) {
-                if (confirm('이 알림을 삭제하시겠습니까?')) {
-                    $.ajax({
-                        url: '/notifications/' + id + '/delete',
-                        type: 'POST',
-                        success: function(response) {
-                            location.reload();
-                        },
-                        error: function(xhr, status, error) {
-                            console.error('Error:', error);
-                            alert('알림 삭제 중 오류가 발생했습니다.');
-                        }
-                    });
-                }
-            };
+            // 토스트 메시지 표시 함수
+            function showToast(message) {
+                const toast = $('#toastMessage');
+                toast.text(message);
+                toast.fadeIn();
+                
+                setTimeout(() => {
+                    toast.fadeOut();
+                }, 3000);
+            }
 
             window.markAllAsRead = function() {
-                if (confirm('모든 알림을 읽음 처리하시겠습니까?')) {
-                    $.ajax({
-                        url: '/notifications/read-all',
-                        type: 'POST',
-                        success: function(response) {
-                            location.reload();
-                        },
-                        error: function(xhr, status, error) {
-                            console.error('Error:', error);
-                            alert('모든 알림 읽음 처리 중 오류가 발생했습니다.');
-                        }
-                    });
-                }
+                $.ajax({
+                    url: '/notifications/read-all',
+                    type: 'POST',
+                    success: function(response) {
+                        location.reload();
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error:', error);
+                        alert('전체 알림 읽음 처리 중 오류가 발생했습니다.');
+                    }
+                });
             };
 
             window.deleteAllNotifications = function() {
-                if (confirm('모든 알림을 삭제하시겠습니까?')) {
-                    $.ajax({
-                        url: '/notifications/delete-all',
-                        type: 'POST',
-                        success: function(response) {
+                $.ajax({
+                    url: '/notifications/delete-all',
+                    type: 'POST',
+                    success: function(response) {
+                        showToast('모든 알림이 삭제되었습니다.');
+                        setTimeout(() => {
                             location.reload();
-                        },
-                        error: function(xhr, status, error) {
-                            console.error('Error:', error);
-                            alert('모든 알림 삭제 중 오류가 발생했습니다.');
-                        }
-                    });
-                }
+                        }, 1000);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error:', error);
+                        alert('전체 알림 삭제 중 오류가 발생했습니다.');
+                    }
+                });
+            };
+
+            window.markAsRead = function(id) {
+                $.ajax({
+                    url: '/notifications/' + id + '/read',
+                    type: 'POST',
+                    success: function(response) {
+                        location.reload();
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error:', error);
+                        alert('알림 읽음 처리 중 오류가 발생했습니다.');
+                    }
+                });
+            };
+
+            window.deleteNotification = function(id) {
+                $.ajax({
+                    url: '/notifications/' + id + '/delete',
+                    type: 'POST',
+                    success: function(response) {
+                        showToast('알림이 삭제되었습니다.');
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error:', error);
+                        alert('알림 삭제 중 오류가 발생했습니다.');
+                    }
+                });
             };
 
             function updateNotificationCount() {
@@ -365,6 +494,23 @@
             updateNotificationCount();
             // 30초마다 알림 개수 업데이트
             setInterval(updateNotificationCount, 30000);
+
+            // 테마 전환 애니메이션
+            function handleThemeTransition() {
+                const overlay = $('.theme-transition-overlay');
+                
+                // 테마 변경 시 오버레이 표시
+                document.addEventListener('theme-changing', function() {
+                    overlay.addClass('active');
+                    
+                    setTimeout(() => {
+                        overlay.removeClass('active');
+                    }, 300);
+                });
+            }
+
+            // 테마 전환 애니메이션 초기화
+            handleThemeTransition();
         });
     </script>
 </body>
