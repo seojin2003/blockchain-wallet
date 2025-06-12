@@ -21,26 +21,27 @@
         }
 
         /* 모든 요소에 동일한 트랜지션 적용 */
-        body, 
-        .notification-item,
-        .notification-icon,
-        .notification-title,
-        .notification-message,
-        .notification-time,
-        .btn-text,
-        .page-title,
-        .btn,
-        .notification-content {
-            transition: all var(--transition-speed) ease;
+        * {
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
-            animation: fadeIn 0.3s ease-in-out;
             margin: 0;
             padding: 0;
             font-family: 'Arial', sans-serif;
+        }
+
+        /* 전환 효과가 필요한 요소들만 선택적으로 적용 */
+        .notification-item,
+        .notification-wrapper,
+        .btn,
+        .notification-content {
+            transition: 
+                background-color 0.2s ease,
+                border-color 0.2s ease,
+                box-shadow 0.2s ease;
         }
 
         @keyframes fadeIn {
