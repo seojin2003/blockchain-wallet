@@ -2,7 +2,7 @@
 (function() {
     const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
     const savedTheme = localStorage.getItem('theme');
-    const theme = savedTheme || (prefersDarkScheme.matches ? 'dark' : 'light');
+    const theme = savedTheme || 'light';  // 기본값을 'light'로 설정
     document.documentElement.setAttribute('data-theme', theme);
 })();
 
