@@ -91,4 +91,50 @@ public class MemberController {
         response.put("exists", exists);
         return ResponseEntity.ok(response);
     }
+
+    // 마이페이지 진입
+    @GetMapping("/mypage")
+    public String mypage(HttpSession session, Map<String, Object> model) {
+        Member member = memberService.getCurrentMember(); // 현재 로그인 회원 정보 가져오기
+        model.put("member", member);
+        return "mypage";
+    }
+
+    // 이름 변경
+    @PostMapping("/api/mypage/name")
+    @ResponseBody
+    public ResponseEntity<?> changeName(@RequestParam String name) {
+        try {
+            memberService.changeName(name);
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "이름이 변경되었습니다.");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> response = new HashMap<>();
+            response.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    // 비밀번호 변경
+    @PostMapping("/api/mypage/password")
+    @ResponseBody
+    public ResponseEntity<?> changePassword(@RequestParam String currentPassword,
+                                            @RequestParam String newPassword) {
+        try {
+            boolean result = memberService.changePassword(currentPassword, newPassword);
+            if (!result) {
+                Map<String, String> response = new HashMap<>();
+                response.put("error", "비밀번호가 올바르지 않습니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "비밀번호가 변경되었습니다.");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> response = new HashMap<>();
+            response.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
 } 

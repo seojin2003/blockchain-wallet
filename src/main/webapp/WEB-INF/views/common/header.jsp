@@ -153,7 +153,7 @@
             </a>
             <div class="user-profile">
                 <i class="fas fa-user"></i>
-                <span><sec:authentication property="principal.username"/>님</span>
+                <a href="/mypage" style="color:inherit; text-decoration:none;"><sec:authentication property="principal.username"/>님</a>
             </div>
             <form action="/logout" method="post" style="display: flex; align-items: center; height: 100%;">
                 <sec:csrfInput />

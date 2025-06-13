@@ -4,6 +4,8 @@ import com.wallet.entity.Member;
 import com.wallet.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -77,5 +79,39 @@ public class MemberService {
     @Transactional
     public Member save(Member member) {
         return memberRepository.save(member);
+    }
+
+    // 현재 로그인한 회원 정보 반환
+    @Transactional(readOnly = true)
+    public Member getCurrentMember() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof User) {
+            String username = ((User) principal).getUsername();
+            return findByUsername(username);
+        } else if (principal instanceof String) {
+            // 인증되지 않은 경우
+            throw new RuntimeException("로그인이 필요합니다.");
+        }
+        throw new RuntimeException("사용자 정보를 찾을 수 없습니다.");
+    }
+
+    // 이름 변경
+    @Transactional
+    public void changeName(String name) {
+        Member member = getCurrentMember();
+        member.setName(name);
+        save(member);
+    }
+
+    // 비밀번호 변경 (현재 비밀번호 검증)
+    @Transactional
+    public boolean changePassword(String currentPassword, String newPassword) {
+        Member member = getCurrentMember();
+        if (!passwordEncoder.matches(currentPassword, member.getPassword())) {
+            return false;
+        }
+        member.setPassword(passwordEncoder.encode(newPassword));
+        save(member);
+        return true;
     }
 } 
