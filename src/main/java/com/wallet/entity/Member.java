@@ -57,6 +57,12 @@ public class Member {
     @Column(name = "has_initialized_coin")
     private boolean hasInitializedCoin = false;
     
+    @Column(name = "reset_password_token", length = 255)
+    private String resetPasswordToken;
+    
+    @Column(name = "reset_password_token_expiry")
+    private LocalDateTime resetPasswordTokenExpiry;
+    
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
     private List<Transaction> transactions = new ArrayList<>();
     

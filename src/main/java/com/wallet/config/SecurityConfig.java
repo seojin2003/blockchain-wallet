@@ -86,8 +86,12 @@ public class SecurityConfig {
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 .and()
             .authorizeRequests()
-                .antMatchers("/css/**", "/js/**", "/images/**", "/static/**", "/webjars/**", "/**/*.pdf").permitAll()
-                .antMatchers("/", "/login", "/register", "/signup", "/api/register", "/api/check-username").permitAll()
+                .antMatchers(
+                    "/css/**", "/js/**", "/images/**", "/static/**", "/webjars/**", "/**/*.pdf",
+                    "/login", "/register", "/signup", "/api/register", "/api/check-username",
+                    "/reset-password-request", "/api/reset-password-request",
+                    "/reset-password", "/api/reset-password"
+                ).permitAll()
                 .antMatchers("/api/**").authenticated()
                 .anyRequest().authenticated()
                 .and()

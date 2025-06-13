@@ -141,6 +141,9 @@
         <div class="signup-link">
             계정이 없으신가요? <a href="/signup">회원가입</a>
         </div>
+        <div class="reset-link" style="margin-top:10px; text-align:center;">
+            <a href="/reset-password-request">비밀번호를 잊으셨나요?</a>
+        </div>
     </div>
 
     <script>

@@ -114,4 +114,13 @@ public class MemberService {
         save(member);
         return true;
     }
+
+    @Transactional(readOnly = true)
+    public Optional<Member> findByResetPasswordToken(String token) {
+        return memberRepository.findByResetPasswordToken(token);
+    }
+
+    public String encodePassword(String rawPassword) {
+        return passwordEncoder.encode(rawPassword);
+    }
 } 

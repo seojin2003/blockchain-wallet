@@ -153,7 +153,14 @@
             </a>
             <div class="user-profile">
                 <i class="fas fa-user"></i>
-                <a href="/mypage" style="color:inherit; text-decoration:none;"><sec:authentication property="principal.username"/>님</a>
+                <c:choose>
+                    <c:when test="${not empty member}">
+                        <a href="/mypage" style="color:inherit; text-decoration:none;">${member.username}님</a>
+                    </c:when>
+                    <c:otherwise>
+                        <span>로그인 해주세요</span>
+                    </c:otherwise>
+                </c:choose>
             </div>
             <form action="/logout" method="post" style="display: flex; align-items: center; height: 100%;">
                 <sec:csrfInput />

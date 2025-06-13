@@ -138,9 +138,9 @@
             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
             
             <div class="form-group">
-                <label class="form-label" for="username">아이디</label>
+                <label class="form-label" for="username">이메일(아이디)</label>
                 <div class="flex gap-2">
-                    <input type="text" id="username" name="username" class="form-control" required>
+                    <input type="email" id="username" name="username" class="form-control" required placeholder="example@email.com">
                     <button type="button" id="checkUsername" class="btn-check">중복 확인</button>
                 </div>
                 <p id="usernameMessage" class="message"></p>
