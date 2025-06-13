@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="/static/css/theme.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/static/js/theme.js"></script>
     <style>
         .mypage-container {
             max-width: 500px;
@@ -66,6 +67,11 @@
 </head>
 <body>
 <jsp:include page="common/header.jsp" />
+<script>
+// 페이지 진입 시 현재 테마 적용
+const currentTheme = localStorage.getItem('theme') || 'light';
+setTheme(currentTheme);
+</script>
 <div class="mypage-container">
     <div class="mypage-title">마이페이지</div>
     <form id="nameForm" method="post">

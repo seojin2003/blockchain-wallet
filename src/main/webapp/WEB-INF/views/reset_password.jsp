@@ -64,7 +64,6 @@
     </style>
 </head>
 <body>
-<jsp:include page="common/header.jsp" />
 <div class="reset-container">
     <div class="reset-title">비밀번호 재설정</div>
     <form id="resetPasswordForm" method="post">

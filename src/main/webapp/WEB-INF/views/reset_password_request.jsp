@@ -64,7 +64,6 @@
     </style>
 </head>
 <body>
-<jsp:include page="common/header.jsp" />
 <div class="reset-container">
     <div class="reset-title">비밀번호 재설정 링크 요청</div>
     <form id="resetRequestForm" method="post">
@@ -74,6 +73,7 @@
             <input type="text" id="email" name="email" class="form-control" required>
         </div>
         <button type="submit" class="btn">재설정 링크 발송</button>
+        <button type="button" class="btn" id="backBtn" style="margin-left:10px; background:#888;">뒤로가기</button>
         <div id="reset-message" class="message"></div>
     </form>
 </div>
@@ -93,6 +93,10 @@ $('#resetRequestForm').submit(function(e) {
             $('#reset-message').removeClass('success').addClass('error').text(xhr.responseJSON?.error || '오류가 발생했습니다.');
         }
     });
+});
+
+$('#backBtn').click(function() {
+    window.location.href = '/login';
 });
 </script>
 </body>
