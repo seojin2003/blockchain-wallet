@@ -41,6 +41,15 @@
             color: var(--text-secondary);
             font-weight: bold;
         }
+        .required::after {
+            content: " *";
+            color: #e74c3c;
+        }
+        .form-note {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
         .form-control {
             width: 100%;
             padding: 0.75rem;
@@ -133,12 +142,13 @@
 <body>
     <div class="register-container">
         <h1 class="text-2xl font-bold mb-6 text-center">회원가입</h1>
+        <p class="form-note mb-4">* 표시는 필수 입력 사항입니다.</p>
         
         <form id="registerForm" class="space-y-6" method="POST">
             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
             
             <div class="form-group">
-                <label class="form-label" for="username">이메일(아이디)</label>
+                <label class="form-label required" for="username">이메일(아이디)</label>
                 <div class="flex gap-2">
                     <input type="email" id="username" name="username" class="form-control" required placeholder="example@email.com">
                     <button type="button" id="checkUsername" class="btn-check">중복 확인</button>
@@ -147,18 +157,19 @@
             </div>
             
             <div class="form-group">
-                <label class="form-label" for="password">비밀번호</label>
+                <label class="form-label required" for="password">비밀번호</label>
                 <input type="password" id="password" name="password" class="form-control" required>
+                <p class="form-note">8자 이상의 영문, 숫자, 특수문자를 포함해야 합니다.</p>
             </div>
             
             <div class="form-group">
-                <label class="form-label" for="confirmPassword">비밀번호 확인</label>
+                <label class="form-label required" for="confirmPassword">비밀번호 확인</label>
                 <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" required>
                 <p id="passwordMessage" class="message"></p>
             </div>
             
             <div class="form-group">
-                <label class="form-label" for="name">이름</label>
+                <label class="form-label required" for="name">이름</label>
                 <input type="text" id="name" name="name" class="form-control" required>
             </div>
             
